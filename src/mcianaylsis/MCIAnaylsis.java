@@ -8,6 +8,7 @@ package mcianaylsis;
 /**
  *
  * @author philipcoulomb
+ * Initial Commit to setup the Github.
  */
 public class MCIAnaylsis {
 
