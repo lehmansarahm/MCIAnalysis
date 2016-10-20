@@ -5,6 +5,8 @@
  */
 package mcianaylsis;
 
+
+
 /**
  *
  * @author philipcoulomb
@@ -17,6 +19,9 @@ public class MCIAnaylsis {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        String[][] commands;
+        
+        commands = ScriptInterpreter.loadCommands();
     }
     
 }
