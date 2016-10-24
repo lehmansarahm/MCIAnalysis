@@ -1,0 +1,4 @@
+mc,\Excel\Breakfast_1.csv,add butter,acCeleRaTion,tasktime
+cg,\Excel\Breakfast 2.csv, all, acceleration,tasktime
+ct,\Excel\Lunch 1.csv, wrap sandwich,acceleration,tasktime
+pc,\Excel\Lunch 2.csv, wrap sandwich,acceleration,tasktime
