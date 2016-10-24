@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
+
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -28,7 +28,7 @@ public class ScriptInterpreter {
 public static String[][] loadCommands()
 {
     String [][] commands = new String[30][100];
-    String fileName = "/configuration.txt";
+    String fileName = "\\configuration.txt";
     String filePath = new File("").getAbsolutePath();
     String fullFilePath = filePath.concat(fileName);
     int commandCount = 0;
@@ -43,6 +43,11 @@ public static String[][] loadCommands()
             BufferedReader bufferedReader = 
                 new BufferedReader(fileReader);
 
+            //--------------------------------------------------------------
+            // The configuration script will be comma separated values so 
+            // this will build the command list
+            //--------------------------------------------------------------
+            
             while((commands[commandCount][0] = bufferedReader.readLine()) != null) {
                 commands[commandCount] = commands[commandCount][0].split(",");
                 commandCount++;
@@ -54,12 +59,12 @@ public static String[][] loadCommands()
         catch(FileNotFoundException ex) {
             System.out.println(
                 "Unable to open file '" + 
-                fileName + "'");                
+                fullFilePath + "'");                
         }
         catch(IOException ex) {
             System.out.println(
                 "Error reading file '" 
-                + fileName + "'");                  
+                + fullFilePath + "'");                  
             // Or we could just do this: 
             // ex.printStackTrace();
         }

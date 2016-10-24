@@ -39,8 +39,8 @@ public class Acceleration implements Analysis {
         gravity[2]=0;
         
         try {
-            reader = new CSVReader(new FileReader(file_path), ',' , '"' , 0);
-            createAccelerationOnlyCSV(file_path,reader);
+            reader = new CSVReader(new FileReader(file_path), ',' , '"' , 0); 
+           createAccelerationOnlyCSV(file_path,reader);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Acceleration.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
