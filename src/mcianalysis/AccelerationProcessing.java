@@ -54,7 +54,7 @@ public class AccelerationProcessing {
                 gravity[1] = 0;
                 first_run_completed = true;
             }
-
+            if(!nextLine[2].equalsIgnoreCase("") && !nextLine[3].equalsIgnoreCase("") && !nextLine[4].equalsIgnoreCase(""))
             writeLinearAcceleration(linear_writer, nextLine);
         }
         linear_writer.close();
