@@ -31,6 +31,7 @@ public class ScriptInterpreter {
         char[] tempCommand = new char[1000];
         String[] commandComponents = new String[30];
         String[] innerCommands = new String[3];
+        String line;
 
         String filePath = new File("").getAbsolutePath();
         String fullFilePath = filePath.concat(fileName);
@@ -42,13 +43,32 @@ public class ScriptInterpreter {
             FileReader fileReader
                     = new FileReader(fullFilePath);
 
-            // Always wrap FileReader in BufferedReader.
+                        // Always wrap FileReader in BufferedReader.
             BufferedReader bufferedReader
                     = new BufferedReader(fileReader);
+            
+            
 
             char[] fullFileContents = new char[1024];
-            int i = 0;
+            int i = 1;
             int r;
+            
+            MCIAnaylsis.configuration[0][0] = "Configuration File Used:";
+            while ((line = bufferedReader.readLine()) != null) {
+    // keep appending last line read to buffer
+                MCIAnaylsis.configuration[i][0] = line;
+                i++;
+            }
+            bufferedReader.close();
+            
+            fileReader
+                    = new FileReader(fullFilePath);
+            bufferedReader = new BufferedReader(fileReader);
+            i = 0;
+            
+            
+
+            
             //--------------------------------------------------------------
             // The configuration script will be comma separated values so 
             // this will build the command list
@@ -66,6 +86,7 @@ public class ScriptInterpreter {
             boolean firstBraceRead = false;
             int k = 0;
 
+           
             while (fullFileContents[i] != '\0') {
                 if (!firstBraceRead) {
                     firstBraceRead = true;
@@ -78,7 +99,14 @@ public class ScriptInterpreter {
                     k++;
                     j = 0;
                 } else {
+                    if(fullFileContents[i] != '\r')
+                    {
                     tempCommand[j] = fullFileContents[i];
+                    }
+                    else
+                    {
+                        tempCommand[j] = '\n';
+                    }
                     j++;
                 }
                 i++;

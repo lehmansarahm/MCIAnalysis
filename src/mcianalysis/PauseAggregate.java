@@ -53,7 +53,7 @@ public class PauseAggregate {
                         String task_name = "";
 
                         if (name_components.length == 3 || name_components.length > 3) {
-                            task_name = name_components[2];
+                            task_name = name_components[3];
                         }
                         List<String[]> read_all = new ArrayList<String[]>();
 
@@ -61,11 +61,15 @@ public class PauseAggregate {
 
                         CSVReader reader = new CSVReader(new FileReader(full_file_path), ',', '"', 0);
                         read_all = reader.readAll();
-
+                        int m = 0;
+                        while(!read_all.get(m)[0].equalsIgnoreCase("Configuration File Used:") && m<read_all.size())
+                        {
+                            m++;
+                        }
                         total_write_line[0] = task_name;
-                        total_write_line[1] = read_all.get(read_all.size() - 1)[1];
-                        total_write_line[2] = read_all.get(read_all.size() - 1)[3];
-                        total_write_line[3] = read_all.get(read_all.size() - 1)[5];
+                        total_write_line[1] = read_all.get(m-1)[1];
+                        total_write_line[2] = read_all.get(m-1)[3];
+                        total_write_line[3] = read_all.get(m-1)[5];
                         writer.writeNext(total_write_line);
                     }
                 }

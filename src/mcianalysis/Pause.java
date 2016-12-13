@@ -7,11 +7,13 @@ package mcianalysis;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -81,13 +83,32 @@ public class Pause implements Analysis {
         if (min_acceleration != null) {
             minimum_magnitude = Double.parseDouble(min_acceleration);
         } else {
-            minimum_magnitude = 1.5;
+            try(FileWriter fw = new FileWriter("Errors.txt", true);
+    BufferedWriter bw = new BufferedWriter(fw);
+    PrintWriter out = new PrintWriter(bw))
+{
+    out.println("No minimum magnitude provided for Pause analysis. Analysis could not be performed.\n");
+    //more code
+} catch (IOException e) {
+    //exception handling left as an exercise for the reader
+}
+
+            return;
         }
 
         if (pause_window != null) {
             minimum_consecutive_pause = Double.parseDouble(pause_window);
         } else {
-            minimum_consecutive_pause = 15;
+                    try(FileWriter fw = new FileWriter("Errors.txt", true);
+    BufferedWriter bw = new BufferedWriter(fw);
+    PrintWriter out = new PrintWriter(bw))
+{
+    out.println("No number of paused moments provided for Pause analysis. Analysis could not be performed.\n");
+    //more code
+} catch (IOException e) {
+    //exception handling left as an exercise for the reader
+}
+            return;
         }
 
         reader.readNext();
@@ -144,6 +165,8 @@ public class Pause implements Analysis {
             pause_csv_writer.close();
 
         }
+        
+        MCIAnaylsis.pause_utilized = true;
 
     }
 

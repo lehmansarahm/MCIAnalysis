@@ -90,7 +90,7 @@ public class Acceleration implements Analysis {
 
                 activity_csv_writer.writeNext(nextWriteLine);
                 i++;
-            }
+            }      
         }
     }
 

@@ -24,6 +24,9 @@ public class AccelerationProcessing {
 
     public static CSVReader convertToLinearAcceleration(CSVReader reader, String desired_file_name) throws IOException {
         String file_path = new File("").getAbsolutePath();
+        String absolute_path = new File("").getAbsolutePath();
+        absolute_path = absolute_path.concat("/Linear");
+        new File(absolute_path).mkdirs();
         String given_file[] = desired_file_name.split("/");
         String[] next_write_line = new String[10];
         desired_file_name = given_file[given_file.length - 1];

@@ -34,7 +34,7 @@ public class Tasktime implements Analysis {
 
         try {
             reader = new CSVReader(new FileReader(file_path), ',', '"', 0);
-            processTaskTime(reader, user_id);
+            processTaskTime(reader, user_id,file_path);
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Acceleration.class.getName()).log(Level.SEVERE, null, ex);
@@ -46,18 +46,15 @@ public class Tasktime implements Analysis {
 
     }
 
-    private void processTaskTime(CSVReader reader, String user_id) throws IOException, ParseException {
+    private void processTaskTime(CSVReader reader, String user_id,String file_path) throws IOException, ParseException {
         List<String[]> read_all = new ArrayList<String[]>();
         String path_to_directory = new File("").getAbsolutePath();
-        String file_path;
+        
         String activity_to_process = new String();
         SimpleDateFormat date_format = new SimpleDateFormat("HH:mm:ss");
         Date start_time = null;
         Date end_time;
         long duration;
-
-        path_to_directory = path_to_directory.concat("/Final/Task Times");
-        new File(path_to_directory).mkdirs();
 
         //--------------------------------------------------------
         // Read in every line of the file
@@ -72,10 +69,10 @@ public class Tasktime implements Analysis {
         duration = end_time.getTime() - start_time.getTime();
         double diffInSeconds = TimeUnit.MILLISECONDS.toSeconds(duration);
 
-        file_path = path_to_directory.concat("/" + read_all.get(1)[9] + ".csv");
+        //file_path = path_to_directory.concat("/" + user_id +"_"+ read_all.get(1)[9] +"_"+ MCIAnaylsis.run_time +".csv");
 
         updateTaskTime(file_path, diffInSeconds, user_id);
-
+        
     }
 
     private void updateTaskTime(String file_path, double diffInSeconds, String user_id) throws FileNotFoundException, IOException {
@@ -85,7 +82,7 @@ public class Tasktime implements Analysis {
         double average_seconds = 0;
         double total_square_distance_from_mean = 0;
         double standard_deviation = 0;
-
+        String path_to_csv = initialFileSetup(file_path, user_id);
         List<String[]> read_all = new ArrayList<String[]>();
         String[] new_line = new String[2];
         String[] total_line = new String[6];
@@ -93,10 +90,10 @@ public class Tasktime implements Analysis {
         new_line[1] = String.valueOf(diffInSeconds);
 
         try {
-            reader = new CSVReader(new FileReader(file_path), ',', '"', 0);
+            reader = new CSVReader(new FileReader(path_to_csv), ',', '"', 0);
 
         } catch (FileNotFoundException ex) {
-            writer = new CSVWriter(new FileWriter(file_path));
+            writer = new CSVWriter(new FileWriter(path_to_csv));
         }
 
         if (reader != null) {
@@ -130,9 +127,11 @@ public class Tasktime implements Analysis {
 
             read_all.add(total_line);
 
-            writer = new CSVWriter(new FileWriter(file_path));
+            writer = new CSVWriter(new FileWriter(path_to_csv));
             writer.writeAll(read_all);
+            
             writer.close();
+          
 
         } else {
             new_line = new String[2];
@@ -154,8 +153,11 @@ public class Tasktime implements Analysis {
             total_line[5] = "0";
 
             writer.writeNext(total_line);
+            
+           writer.close();
+            
 
-            writer.close();
+
         }
     }
 
@@ -171,12 +173,13 @@ public class Tasktime implements Analysis {
         String absolute_path = new File("").getAbsolutePath();
         absolute_path = absolute_path.concat("/Final");
         new File(absolute_path).mkdirs();
-        absolute_path = absolute_path.concat("/Acceleration");
+        absolute_path = absolute_path.concat("/Tasktime");
         new File(absolute_path).mkdirs();
-
-        absolute_path = absolute_path.concat(user_id);
+        
+        absolute_path = absolute_path.concat("/"+user_id);
         new File(absolute_path).mkdirs();
-
+        
+        absolute_path = absolute_path.concat("/");
         absolute_path = absolute_path.concat(desired_filename);
 
         return absolute_path;

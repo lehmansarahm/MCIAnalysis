@@ -25,6 +25,7 @@ public class ActivitySplit {
         String file_path = new File("").getAbsolutePath();
 
         String time_stamp = new SimpleDateFormat("yyyy-MM-dd_HH_mm").format(new java.util.Date());
+        MCIAnaylsis.run_time = time_stamp;
 
         MCIAnaylsis.requested_activities_set.add(requested_activity);
 
@@ -66,6 +67,7 @@ public class ActivitySplit {
         CSVWriter activity_csv_writer = null;
 
         String time_stamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm").format(new java.util.Date());
+        MCIAnaylsis.run_time = time_stamp;
 
         String[] nextLine;
         String[] next_write_line = new String[10];
@@ -81,11 +83,14 @@ public class ActivitySplit {
                 activity_started = true;
                 requested_activity = nextLine[9];
                 MCIAnaylsis.requested_activities_set.add(requested_activity);
+                String absolute_path = new File("").getAbsolutePath();
+                absolute_path = absolute_path.concat("/Intermediate");
+                new File(absolute_path).mkdirs();
 
                 //----------------------------------------------------------------------
                 // The new csv file name will be the user id, activity, and time stamp
                 //----------------------------------------------------------------------
-                String file_name = "/Intermediate/" + user_id + "_" + requested_activity + "_" + time_stamp + ".csv";
+                String file_name = "/Intermediate/" + user_id + "_" + MCIAnaylsis.acceleration_processing + "_" + requested_activity + "_" + time_stamp + ".csv";
                 full_file_path = file_path.concat(file_name);
 
                 activity_csv_writer = new CSVWriter(new FileWriter(full_file_path));
@@ -114,14 +119,16 @@ public class ActivitySplit {
                 //------------------------------------------
                 activity_csv_writer.close();
                 activity_csv_paths.add(full_file_path);
-
+                String absolute_path = new File("").getAbsolutePath();
+                absolute_path = absolute_path.concat("/Intermediate");
+                new File(absolute_path).mkdirs();
                 //-----------------------------------------------------
                 // The new activity is now the requested_activity
                 // create a new CSV file to store the data
                 //-----------------------------------------------------
                 requested_activity = nextLine[9];
                 MCIAnaylsis.requested_activities_set.add(requested_activity);
-                String file_name = "/Intermediate/" + user_id + "_" + requested_activity + "_" + time_stamp + ".csv";
+                String file_name = "/Intermediate/" + user_id + "_" + MCIAnaylsis.acceleration_processing + "_" + requested_activity + "_" + time_stamp + ".csv";
                 full_file_path = file_path.concat(file_name);
 
                 activity_csv_writer = new CSVWriter(new FileWriter(full_file_path));

@@ -25,7 +25,11 @@ import java.util.Set;
 public class MCIAnaylsis {
 
     public static Set<String> requested_activities_set = new HashSet<>();
-
+    public static String[][] configuration = new String[1000][1];
+    public static String run_time;
+    public static String acceleration_processing;
+    public static boolean direction_utilized = false;
+    public static boolean pause_utilized = false;
     /**
      * @param args the command line arguments
      */
@@ -72,8 +76,10 @@ public class MCIAnaylsis {
             switch(acceleration_process)
             {
                 case 0:
+                    acceleration_processing = "Raw";
                     break;
                 case 1:
+                    acceleration_processing = "Linear";
                 reader = AccelerationProcessing.convertToLinearAcceleration(reader, commands[i][1].toString().trim());
                 break;
                 default:
@@ -119,7 +125,13 @@ public class MCIAnaylsis {
                 Method analysis_method = analysis_class.getMethod("begin_analysis", String.class, String.class, String.class, String.class);
 
                 while (j < all_activities_csv_reader.size()) {
+                    try{
                     analysis_method.invoke(class_object, all_activities_csv_reader.get(j), user_id, param1, param2);
+                    }
+                    catch(IllegalArgumentException e)
+                    {
+                        continue;
+                    }
                     j++;
                 }
                 k++;
@@ -128,8 +140,12 @@ public class MCIAnaylsis {
             i++;
         }
 
-        //DirectionAggregate.aggregateDirectionCSV();
-        //PauseAggregate.aggregatePauseCSV();
+       WriteConfigurationCSV.writeConfigurationSetupCSV();
+       
+       if(direction_utilized)
+            DirectionAggregate.aggregateDirectionCSV();
+       if(pause_utilized)
+        PauseAggregate.aggregatePauseCSV();
     }
 
 }

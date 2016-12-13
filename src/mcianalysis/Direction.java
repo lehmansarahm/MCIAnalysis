@@ -7,11 +7,13 @@ package mcianalysis;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,13 +28,23 @@ import java.util.logging.Logger;
  */
 public class Direction implements Analysis {
 
+    //strings to be written into the csv file
+    String current_acceleration_axis1;
+    String previous_acceleration_axis1;
+    String acceleration_change_axis1;
+    String average_acceleration_axis1;
+    String current_acceleration_axis2;
+    String previous_acceleration_axis2;
+    String acceleration_change_axis2;
+    String average_acceleration_axis2;
+
     @Override
     public void begin_analysis(String file_path, String user_id, String param1, String param2) {
         CSVReader reader;
 
         try {
             reader = new CSVReader(new FileReader(file_path), ',', '"', 0);
-            createDirectionAnalysisCSV(file_path, reader, user_id, param1);
+            createDirectionAnalysisCSV(file_path, reader, user_id, param1, param2);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Acceleration.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -47,20 +59,26 @@ public class Direction implements Analysis {
     // reading to see if the acceleration on a specific component changed
     // more than a certain amount to indicate a change of direction
     //--------------------------------------------------------------------------
-    private void createDirectionAnalysisCSV(String file_path, CSVReader reader, String user_id, String acceleration_change_threshold) throws IOException, ParseException {
+    private void createDirectionAnalysisCSV(String file_path, CSVReader reader, String user_id, String acceleration_change_threshold, String axes_to_analyze) throws IOException, ParseException {
         String path_to_csv;
         path_to_csv = initialFileSetup(file_path, user_id);
 
         String nextReadLine[];
         String nextWriteLine[];
+        int axis1;
+        int axis2;
+
         int loop_count = 0;
         boolean direction_change_recorded = false;
+        boolean first_line_read = false;
 
         //variables to record the timing from each row
         SimpleDateFormat date_format = new SimpleDateFormat("HH:mm:ss");
         Date start_time = null;
 
         CSVWriter direction_csv_writer;
+
+        int axes;
 
         //components of acceleration
         double current_x_acceleration = 0;
@@ -74,7 +92,80 @@ public class Direction implements Analysis {
         if (acceleration_change_threshold != null) {
             maximum_change_threshold = Double.parseDouble(acceleration_change_threshold);
         } else {
-            maximum_change_threshold = 4.5;
+                    try(FileWriter fw = new FileWriter("Errors.txt", true);
+    BufferedWriter bw = new BufferedWriter(fw);
+    PrintWriter out = new PrintWriter(bw))
+{
+    out.println("No minimum magnitude acceleration delta provided for Direction analysis. Analysis could not be performed.\n");
+    //more code
+} catch (IOException e) {
+    //exception handling left as an exercise for the reader
+}
+            return;
+            //throw exception and write the error to some log.
+        }
+
+        if (axes_to_analyze != null) {
+            axes = Integer.parseInt(axes_to_analyze);
+        } else {
+                    try(FileWriter fw = new FileWriter("Errors.txt", true);
+    BufferedWriter bw = new BufferedWriter(fw);
+    PrintWriter out = new PrintWriter(bw))
+{
+    out.println("No axes to analyze provided to Direction analysis. Analysis could not be performed.\n");
+    //more code
+} catch (IOException e) {
+    //exception handling left as an exercise for the reader
+}
+            return;
+            //throw exception and write the error to some log.
+        }
+
+        //------------------------------------------
+        // Direction analysis for XY
+        //------------------------------------------
+        if (axes == 1) {
+            previous_acceleration_axis1 = "Starting X Acceleration:";
+            current_acceleration_axis1 = "Next X Acceleration:";
+            acceleration_change_axis1 = "X Acceleration Delta:";
+            average_acceleration_axis1 = "Average X Acceleration Change";
+            previous_acceleration_axis2 = "Starting Y Acceleration";
+            current_acceleration_axis2 = "Next Y Acceleration:";
+            acceleration_change_axis2 = "Y Acceleration Delta:";
+            average_acceleration_axis2 = "Average Y Acceleration Change";
+            axis1 = 5;
+            axis2 = 6;
+
+        } //-----------------------------------------------------
+        // Direction analysis for XZ
+        //-----------------------------------------------------
+        else if (axes == 2) {
+            previous_acceleration_axis1 = "Starting X Acceleration:";
+            current_acceleration_axis1 = "Next X Acceleration:";
+            acceleration_change_axis1 = "X Acceleration Delta:";
+            average_acceleration_axis1 = "Average X Acceleration Change";
+            previous_acceleration_axis2 = "Starting Z Acceleration";
+            current_acceleration_axis2 = "Next Z Acceleration:";
+            acceleration_change_axis2 = "Z Acceleration Delta:";
+            average_acceleration_axis2 = "Average Z Acceleration Change";
+            axis1 = 5;
+            axis2 = 7;
+        } //------------------------------------------------------
+        // Direction analysis for YZ requested
+        //------------------------------------------------------
+        else if (axes == 3) {
+            previous_acceleration_axis1 = "Starting Y Acceleration:";
+            current_acceleration_axis1 = "Next Y Acceleration:";
+            acceleration_change_axis1 = "Y Acceleration Delta:";
+            average_acceleration_axis1 = "Average Y Acceleration Change";
+            previous_acceleration_axis2 = "Starting Z Acceleration";
+            current_acceleration_axis2 = "Next Z Acceleration:";
+            acceleration_change_axis2 = "Z Acceleration Delta:";
+            average_acceleration_axis2 = "Average Z Acceleration Change";
+            axis1 = 6;
+            axis2 = 7;
+        } else {
+            return;
         }
 
         reader.readNext();
@@ -82,8 +173,9 @@ public class Direction implements Analysis {
         while ((nextReadLine = reader.readNext()) != null) {
 
             if (loop_count > 3) {
-                current_x_acceleration = Double.parseDouble(nextReadLine[5]);
-                current_y_acceleration = Double.parseDouble(nextReadLine[6]);
+
+                current_x_acceleration = Double.parseDouble(nextReadLine[axis1]);
+                current_y_acceleration = Double.parseDouble(nextReadLine[axis2]);
 
                 change_x_acceleration = current_x_acceleration - previous_x_acceleration;
                 change_x_acceleration = Math.abs(change_x_acceleration);
@@ -91,13 +183,18 @@ public class Direction implements Analysis {
                 change_y_acceleration = current_y_acceleration - previous_y_acceleration;
                 change_y_acceleration = Math.abs(change_y_acceleration);
 
-                if (change_x_acceleration > maximum_change_threshold || change_y_acceleration > maximum_change_threshold) {
-                    start_time = date_format.parse(nextReadLine[0]);
-                    writeDirectionCSV(start_time, previous_x_acceleration, current_x_acceleration, change_x_acceleration, previous_y_acceleration, current_y_acceleration, change_y_acceleration, path_to_csv);
-                    direction_change_recorded = true;
+                if (first_line_read) {
+                    if (change_x_acceleration > maximum_change_threshold || change_y_acceleration > maximum_change_threshold) {
+                        start_time = date_format.parse(nextReadLine[0]);
+                        writeDirectionCSV(start_time, previous_x_acceleration, current_x_acceleration, change_x_acceleration, previous_y_acceleration, current_y_acceleration, change_y_acceleration, path_to_csv);
+                        direction_change_recorded = true;
+                    }
+                } else {
+                    first_line_read = true;
                 }
-
             }
+            previous_x_acceleration = current_x_acceleration;
+            previous_y_acceleration = current_y_acceleration;
             loop_count++;
         }
 
@@ -107,9 +204,9 @@ public class Direction implements Analysis {
 
             total_write_line[0] = "Number of Direction Changes:";
             total_write_line[1] = "0";
-            total_write_line[2] = "Average X Acceleration Change";
+            total_write_line[2] = average_acceleration_axis1;
             total_write_line[3] = "0";
-            total_write_line[4] = "Average Y Acceleration Change";
+            total_write_line[4] = average_acceleration_axis2;
             total_write_line[5] = "0";
 
             direction_csv_writer.writeNext(total_write_line);
@@ -118,6 +215,7 @@ public class Direction implements Analysis {
             direction_csv_writer.close();
 
         }
+        MCIAnaylsis.direction_utilized = true;
     }
 
     //------------------------------------------------------------------
@@ -181,8 +279,8 @@ public class Direction implements Analysis {
             average_y_acceleration_change = (Double) total_y_acceleration_change / number_of_direction_changes;
 
             total_write_line[0] = "Number of Direction Changes:";
-            total_write_line[2] = "Average X Acceleration Change";
-            total_write_line[4] = "Average Y Acceleration Change";
+            total_write_line[2] = average_acceleration_axis1;
+            total_write_line[4] = average_acceleration_axis2;
             total_write_line[1] = String.valueOf(number_of_direction_changes);
             total_write_line[3] = String.valueOf(average_x_acceleration_change);
             total_write_line[5] = String.valueOf(average_y_acceleration_change);
@@ -199,12 +297,12 @@ public class Direction implements Analysis {
             //this code will only run after the first direction change is recorded for the
             // activity so the first line and the total line will be equal
             next_write_line[0] = "Time of Direction Change:";
-            next_write_line[1] = "Starting X Acceleration:";
-            next_write_line[2] = "Next X Acceleration:";
-            next_write_line[3] = "X Acceleration Delta:";
-            next_write_line[4] = "Starting Y Acceleration";
-            next_write_line[5] = "Next Y Acceleration:";
-            next_write_line[6] = "Y Acceleration Delta:";
+            next_write_line[1] = previous_acceleration_axis1;
+            next_write_line[2] = current_acceleration_axis1;
+            next_write_line[3] = acceleration_change_axis1;
+            next_write_line[4] = previous_acceleration_axis2;
+            next_write_line[5] = current_acceleration_axis2;
+            next_write_line[6] = acceleration_change_axis2;
 
             direction_csv_writer.writeNext(next_write_line);
 
@@ -223,9 +321,9 @@ public class Direction implements Analysis {
             // x and y directions
             total_write_line[0] = "Number of Direction Changes:";
             total_write_line[1] = "1";
-            total_write_line[2] = "Average X Acceleration Change";
+            total_write_line[2] = average_acceleration_axis1;
             total_write_line[3] = String.valueOf(change_x_acceleration);
-            total_write_line[4] = "Average Y Acceleration Change";
+            total_write_line[4] = average_acceleration_axis2;
             total_write_line[5] = String.valueOf(change_y_acceleration);
 
             direction_csv_writer.writeNext(total_write_line);
