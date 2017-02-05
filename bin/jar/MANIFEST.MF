@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.9.6
+Created-By: 1.8.0_121-8u121-b13-0ubuntu1.16.04.2-b13 (Oracle Corporati
+ on)
+built-by: admin
+Main-Class: edu.temple.tan.mcianalysis.MCIAnalysis
+

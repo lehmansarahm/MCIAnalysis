@@ -1,0 +1,117 @@
+	<project basedir="." default="build-jar" name="MCIAnalysis">
+	    <property environment="env"/>
+	    <property name="debuglevel" value="source,lines,vars"/>
+		
+	    <property name="build.dir"     value="bin"/>
+	    <property name="src.dir"       value="src"/>
+	    <property name="lib.dir"       value="lib"/>
+	    <property name="classes.dir"   value="${build.dir}/classes"/>
+	    <property name="jar.dir"       value="${build.dir}/jar"/>
+	    <property name="jar.file"      value="${jar.dir}/MCIAnalysis.jar"/>
+	    <property name="manifest.file" value="${jar.dir}/MANIFEST.MF"/>
+
+	    <property name="main.class" value="edu.temple.tan.mcianalysis.MCIAnalysis"/>
+
+	    <path id="external.jars">
+	        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+	    </path>
+
+	    <path id="project.classpath">
+	        <pathelement location="${src.dir}"/>
+	        <path refid="external.jars" />
+	    </path>
+
+	    <target name="init">
+	        <mkdir dir="${build.dir}"/>
+	        <mkdir dir="${classes.dir}"/>
+	        <mkdir dir="${jar.dir}"/>
+	        <copy includeemptydirs="false" todir="${build.dir}">
+	            <fileset dir="${src.dir}">
+	                <exclude name="**/*.launch"/>
+	                <exclude name="**/*.java"/>
+	            </fileset>
+	        </copy>
+	    </target>
+
+	    <target name="clean">
+	        <delete dir="${build.dir}"/>
+	    </target>
+
+	    <target name="cleanall" depends="clean"/>
+
+	    <target name="build" depends="init">
+	        <echo message="${ant.project.name}: ${ant.file}"/>
+	        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" classpathref="project.classpath">
+	            <src path="${src.dir}"/>
+	        </javac>
+	    </target>
+
+	    <target name="build-jar" depends="build">
+	        <delete file="${jar.file}" />
+	        <delete file="${manifest.file}" />
+
+	        <manifest file="${manifest.file}" >
+	            <attribute name="built-by" value="${user.name}" />
+	            <attribute name="Main-Class" value="${main.class}" />
+	        </manifest>
+
+	        <jar destfile="${jar.file}" 
+	            basedir="${build.dir}" 
+	            manifest="${manifest.file}">
+	            <fileset dir="${classes.dir}" includes="**/*.class" />
+	            <zipgroupfileset dir="${lib.dir}" includes="**/*.jar" />
+	        </jar>
+	    </target>
+	</project>
+
+
+<!-- <project name="MCIAnalysis" basedir="." default="main">
+
+    <property name="src.dir"     value="src"/>
+	<property name="lib.dir"     value="lib"/>
+
+    <property name="build.dir"   value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="jar.dir"     value="${build.dir}/jar"/>
+
+    <property name="main-class"  value="edu.temple.tan.mcianalysis.MCIAnalysis"/>
+	
+	<path id="classpath">
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    </path>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+	<target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath"/>
+        <copy todir="${classes.dir}">
+            <fileset dir="${src.dir}" excludes="**/*.java"/>
+        </copy>
+    </target>
+
+    <target name="jar" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run" depends="jar">
+        <java fork="true" classname="${main-class}">
+            <classpath>
+                <path refid="classpath"/>
+                <path location="${jar.dir}/${ant.project.name}.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="clean-build" depends="clean,jar"/>
+
+    <target name="main" depends="clean,run"/>
+
+</project> -->
