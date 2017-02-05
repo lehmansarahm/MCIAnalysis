@@ -1,1 +1,1 @@
-{Username = mcFile = /data/Breakfast1.csvTask = allAcceleration Process = 1Analysis = Pause:2.5Analysis = Direction:3.5:1Analysis = TasktimeAnalysis = Acceleration}
+{Username = mcFile = /data/Breakfast1.csvTask = allAcceleration Process = 1Analysis = Pause:2.5:2Analysis = Direction:3.5:1Analysis = TasktimeAnalysis = Acceleration}
