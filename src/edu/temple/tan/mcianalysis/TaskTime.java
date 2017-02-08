@@ -25,7 +25,7 @@ import java.util.logging.Logger;
  *
  * @author Matt
  */
-public class Tasktime implements Analysis {
+public class TaskTime implements Analysis {
 
     @Override
     public void begin_analysis(String file_path, String user_id, String param1, String param2) {
@@ -39,9 +39,9 @@ public class Tasktime implements Analysis {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Acceleration.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(Tasktime.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TaskTime.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParseException ex) {
-            Logger.getLogger(Tasktime.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TaskTime.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }

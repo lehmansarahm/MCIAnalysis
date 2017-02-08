@@ -105,7 +105,7 @@ public class MCIAnalysis {
                 String param1 = null;
                 String param2 = null;
                 String class_name = new String();
-                class_name = commands[i][k].toLowerCase().trim();
+                class_name = commands[i][k].trim();
 
                 analysis = class_name.split(":");
 
@@ -118,7 +118,6 @@ public class MCIAnalysis {
 
                 class_name = analysis[0];
 
-                class_name = class_name.substring(0, 1).toUpperCase().concat(class_name.substring(1));
                 class_name = "edu.temple.tan.mcianalysis.".concat(class_name);
                 Class analysis_class = Class.forName(class_name);
                 Object class_object = (Object) analysis_class.newInstance();
