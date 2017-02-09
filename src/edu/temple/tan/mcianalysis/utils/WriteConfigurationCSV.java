@@ -3,9 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package edu.temple.tan.mcianalysis;
+package edu.temple.tan.mcianalysis.utils;
 
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.MCIAnalysis;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;

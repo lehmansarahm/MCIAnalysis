@@ -3,10 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package edu.temple.tan.mcianalysis;
+package edu.temple.tan.mcianalysis.analyses;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.MCIAnalysis;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,7 +42,7 @@ public class Direction implements Analysis {
     String average_acceleration_axis2;
 
     @Override
-    public void begin_analysis(String file_path, String user_id, String param1, String param2) {
+    public void beginAnalysis(String file_path, String user_id, String param1, String param2) {
         CSVReader reader;
 
         try {
@@ -92,15 +95,15 @@ public class Direction implements Analysis {
         if (acceleration_change_threshold != null) {
             maximum_change_threshold = Double.parseDouble(acceleration_change_threshold);
         } else {
-                    try(FileWriter fw = new FileWriter("Errors.txt", true);
-    BufferedWriter bw = new BufferedWriter(fw);
-    PrintWriter out = new PrintWriter(bw))
-{
-    out.println("No minimum magnitude acceleration delta provided for Direction analysis. Analysis could not be performed.\n");
-    //more code
-} catch (IOException e) {
-    //exception handling left as an exercise for the reader
-}
+            try(FileWriter fw = new FileWriter("Errors.txt", true);
+			    BufferedWriter bw = new BufferedWriter(fw);
+			    PrintWriter out = new PrintWriter(bw))
+			{
+			    out.println("No minimum magnitude acceleration delta provided for Direction analysis. Analysis could not be performed.\n");
+			    //more code
+			} catch (IOException e) {
+			    //exception handling left as an exercise for the reader
+			}
             return;
             //throw exception and write the error to some log.
         }
@@ -108,15 +111,15 @@ public class Direction implements Analysis {
         if (axes_to_analyze != null) {
             axes = Integer.parseInt(axes_to_analyze);
         } else {
-                    try(FileWriter fw = new FileWriter("Errors.txt", true);
-    BufferedWriter bw = new BufferedWriter(fw);
-    PrintWriter out = new PrintWriter(bw))
-{
-    out.println("No axes to analyze provided to Direction analysis. Analysis could not be performed.\n");
-    //more code
-} catch (IOException e) {
-    //exception handling left as an exercise for the reader
-}
+            try(FileWriter fw = new FileWriter("Errors.txt", true);
+			    BufferedWriter bw = new BufferedWriter(fw);
+			    PrintWriter out = new PrintWriter(bw))
+			{
+			    out.println("No axes to analyze provided to Direction analysis. Analysis could not be performed.\n");
+			    //more code
+			} catch (IOException e) {
+			    //exception handling left as an exercise for the reader
+			}
             return;
             //throw exception and write the error to some log.
         }
@@ -215,6 +218,7 @@ public class Direction implements Analysis {
             direction_csv_writer.close();
 
         }
+        
         MCIAnalysis.direction_utilized = true;
     }
 

@@ -1,4 +1,4 @@
-package edu.temple.tan.mcianalysis;
+package edu.temple.tan.mcianalysis.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Scanner;
+
+import edu.temple.tan.mcianalysis.MCIAnalysis;
 
 
 /*

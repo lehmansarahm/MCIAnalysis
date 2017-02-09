@@ -3,10 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package edu.temple.tan.mcianalysis;
+package edu.temple.tan.mcianalysis.analyses;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.MCIAnalysis;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,10 +30,10 @@ import java.util.logging.Logger;
  *
  * @author philipcoulomb
  */
-public class PauseDuration implements Analysis {
+public class Pause implements Analysis {
 
     @Override
-    public void begin_analysis(String file_path, String user_id, String param1, String param2) {
+    public void beginAnalysis(String file_path, String user_id, String param1, String param2) {
         CSVReader reader;
 
         try {
@@ -39,9 +42,9 @@ public class PauseDuration implements Analysis {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Acceleration.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(PauseDuration.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Pause.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParseException ex) {
-            Logger.getLogger(PauseDuration.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Pause.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -51,8 +54,7 @@ public class PauseDuration implements Analysis {
     // defined minimum it marks it. If x number of magnitudes are below the 
     // minimum in a row then a pause had occured.
     //--------------------------------------------------------------------------
-    private void createPauseAnalysisCSV(String file_path, CSVReader reader, String user_id, 
-    		String min_acceleration, String pause_window) throws IOException, ParseException {
+    private void createPauseAnalysisCSV(String file_path, CSVReader reader, String user_id, String min_acceleration, String pause_window) throws IOException, ParseException {
         String path_to_csv;
         path_to_csv = initialFileSetup(file_path, user_id);
         CSVReader pause_reader;
@@ -70,7 +72,7 @@ public class PauseDuration implements Analysis {
         Date end_time;
         double duration;
         double diffInSeconds;
-        final double milliseconds_between_readings = 4.34782608696;	// approx 230 times per second
+        final double milliseconds_between_readings = 33.3333333333;
 
         //components of acceleration
         double x_acceleration = 0;
@@ -115,6 +117,7 @@ public class PauseDuration implements Analysis {
         reader.readNext();
 
         while ((nextReadLine = reader.readNext()) != null) {
+
             x_acceleration = Double.parseDouble(nextReadLine[5]);
             y_acceleration = Double.parseDouble(nextReadLine[6]);
             z_acceleration = Double.parseDouble(nextReadLine[7]);
@@ -146,7 +149,9 @@ public class PauseDuration implements Analysis {
                 //reset the consecutive pause checks
                 previous_was_paused = false;
                 consecutive_count = 0;
+
             }
+
         }
 
         if (!pause_recorded) {
@@ -161,17 +166,18 @@ public class PauseDuration implements Analysis {
 
             pause_csv_writer.writeNext(total_write_line);
             pause_csv_writer.close();
+
         }
         
         MCIAnalysis.pause_utilized = true;
+
     }
 
     //--------------------------------------------------------------------------
     // The calculateMagnitude function accepts the x,y,z components of 
     // acceleration and returns the magnitude of the acceleration vector
     //--------------------------------------------------------------------------
-    private double calculateMagnitude(double x_acceleration, double y_acceleration, 
-    		double z_acceleration) {
+    private double calculateMagnitude(double x_acceleration, double y_acceleration, double z_acceleration) {
         double magnitude = 0;
         double x_squared = 0;
         double y_squared = 0;
@@ -197,8 +203,7 @@ public class PauseDuration implements Analysis {
     // of the csv will feature totals such as the number of pauses and
     // the average duration of pauses.
     //------------------------------------------------------------------
-    private void writePauseCSV(Date start_time, Date end_time, double duration, 
-    		String file_path) throws IOException {
+    private void writePauseCSV(Date start_time, Date end_time, double duration, String file_path) throws IOException {
         CSVWriter pause_csv_writer = null;
         List<String[]> read_all = new ArrayList<String[]>();
         List<String[]> write_all = new ArrayList<String[]>();
@@ -212,11 +217,13 @@ public class PauseDuration implements Analysis {
 
         try {
             pause_reader = new CSVReader(new FileReader(file_path), ',', '"', 0);
+
         } catch (FileNotFoundException ex) {
 
         }
 
         if (pause_reader != null) {
+
             read_all = pause_reader.readAll();
 
             //remove the total line because this will be recalculated
@@ -230,8 +237,9 @@ public class PauseDuration implements Analysis {
             //add the new line to the read_all object
             read_all.add(next_write_line);
 
-            //loop through the read_all object to recalculate the totals
             int i = 1;
+
+            //loop through the read_all object to recalculate the totals
             while (i < read_all.size()) {
                 number_of_pauses++;
                 total_time_paused = total_time_paused + Double.parseDouble(read_all.get(i)[2]);
@@ -280,6 +288,7 @@ public class PauseDuration implements Analysis {
             pause_csv_writer.flush();
             pause_csv_writer.close();
         }
+
     }
 
     //-----------------------------------------------------------------------------
@@ -288,13 +297,12 @@ public class PauseDuration implements Analysis {
     // to write to.
     //-----------------------------------------------------------------------------
     private String initialFileSetup(String file_path, String user_id) {
+
         String[] path_components = file_path.split("/");
         String desired_filename = path_components[path_components.length - 1];
         String absolute_path = new File("").getAbsolutePath();
-        
         absolute_path = absolute_path.concat("/Final");
         new File(absolute_path).mkdirs();
-        
         absolute_path = absolute_path.concat("/Pause");
         new File(absolute_path).mkdirs();
 
@@ -302,6 +310,7 @@ public class PauseDuration implements Analysis {
         new File(absolute_path).mkdirs();
 
         absolute_path = absolute_path.concat("/Pause_".concat(desired_filename));
+
         return absolute_path;
     }
 }

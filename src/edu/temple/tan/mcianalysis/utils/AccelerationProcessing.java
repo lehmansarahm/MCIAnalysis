@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package edu.temple.tan.mcianalysis;
+package edu.temple.tan.mcianalysis.utils;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;

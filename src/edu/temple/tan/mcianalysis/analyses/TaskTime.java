@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package edu.temple.tan.mcianalysis;
+package edu.temple.tan.mcianalysis.analyses;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 public class TaskTime implements Analysis {
 
     @Override
-    public void begin_analysis(String file_path, String user_id, String param1, String param2) {
+    public void beginAnalysis(String file_path, String user_id, String param1, String param2) {
         CSVReader reader;
         String[] nextLine;
 

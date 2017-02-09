@@ -1,11 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.temple.tan.mcianalysis;
 
 import com.opencsv.CSVReader;
+
+import edu.temple.tan.mcianalysis.aggregates.DirectionAggregate;
+import edu.temple.tan.mcianalysis.aggregates.PauseAggregate;
+import edu.temple.tan.mcianalysis.analyses.Analysis;
+import edu.temple.tan.mcianalysis.utils.AccelerationProcessing;
+import edu.temple.tan.mcianalysis.utils.ActivitySplit;
+import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.ScriptInterpreter;
+import edu.temple.tan.mcianalysis.utils.WriteConfigurationCSV;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -13,14 +18,19 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
+
 /**
- *
- * @author philipcoulomb Initial Commit to setup the Github.
+ * Primary executable class within the MCI Analysis toolkit.  Searches file 
+ * system for applicable configuration files, parses them, and executes the 
+ * desired analysis operations with the appropriate input data and parameters.
+ * 
+ * @author Philip M. Coulomb
+ * @author Sarah M. Lehman
  */
 public class MCIAnalysis {
 
@@ -30,121 +40,137 @@ public class MCIAnalysis {
     public static String acceleration_processing;
     public static boolean direction_utilized = false;
     public static boolean pause_utilized = false;
+    
     /**
-     * @param args the command line arguments
+     * Primary operation method
+     * 
+     * @param args the command line arguments, none currently accepted
      */
-    public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-        // TODO code application logic here
-        String[][] commands;
-        String target_file;
-        String target_activity;
+    @SuppressWarnings({ "resource", "unchecked" })
+	public static void main(String[] args) throws FileNotFoundException, IOException, 
+    	ClassNotFoundException, NoSuchMethodException, IllegalAccessException, 
+    	IllegalArgumentException, InvocationTargetException, InstantiationException {
+    	
+    	// before anything else, clear out artifacts from last execution
+    	removeOldArtifacts();
+    	
+        String[][] commands = ScriptInterpreter.loadCommands();
         String filePath = new File("").getAbsolutePath();
-        String user_id;
-        List<String> all_activities_csv_reader = new ArrayList<String>();
-
-        CSVReader activity_csv_reader;
-
-        commands = ScriptInterpreter.loadCommands();
+        List<String> csvActivityList = new ArrayList<String>();
 
         int i = 0;
-
-        while (i < commands.length && commands[i][0] != null) {
-            //------------------------------------------------------
-            // The [i][0th] entry will always be the user id
-            //------------------------------------------------------
-            user_id = commands[i][0].trim();
-            //------------------------------------------------------
-            // The [i][1th] entry will always be the target files
-            // relative file path
-            //------------------------------------------------------
-            target_file = filePath.concat(commands[i][1].toString().trim());
-
-            //------------------------------------------------------
-            // The [i][2]th entry will always be the targeted
-            // activity
-            //------------------------------------------------------
-            target_activity = commands[i][2].toString().trim();
-
-            //------------------------------------------------------------
-            // CSVReader reader is one of two arguments to be passed to 
-            // the analysis methods
-            //------------------------------------------------------------
-            CSVReader reader = new CSVReader(new FileReader(target_file), ',', '"', 0);
+        while (i < commands.length && 
+		  commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.USERNAME.ordinal()] != null) {
+        	// Retrieve the initial command details (username, input file, 
+        	// target activity, accel. proc. mode)
+        	String userID = 
+        			commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.USERNAME.ordinal()].trim();
+            String rawFilename = 
+            		commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.INPUT_FILE.ordinal()].toString().trim();
+            String targetFile = filePath.concat(rawFilename);
             
-            int acceleration_process = Integer.valueOf(commands[i][3]);
-            
-            switch(acceleration_process)
-            {
+            String targetActivity = 
+            		commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.TASK.ordinal()].toString().trim();
+            int acceleration_process = Integer.valueOf(
+            		commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.ACCEL_PROCESSING.ordinal()]);
+
+            // CSVReader reader is one of two arguments to be passed to the
+            // analysis methods, to be populated based on accel. processing selection
+            CSVReader reader = new CSVReader(new FileReader(targetFile), ',', '"', 0);
+            switch (acceleration_process) {
                 case 0:
                     acceleration_processing = "Raw";
                     break;
                 case 1:
                     acceleration_processing = "Linear";
-                reader = AccelerationProcessing.convertToLinearAcceleration(reader, commands[i][1].toString().trim());
-                break;
+	                reader = AccelerationProcessing.convertToLinearAcceleration(reader, rawFilename);
+	                break;
                 default:
                     break;
             }
-            if (!target_activity.equalsIgnoreCase("All")) {
-                all_activities_csv_reader.add(ActivitySplit.generateActivitySpecificCSV(reader, user_id, target_activity));
+            
+            // Split out activity list based on user selection
+            if (!targetActivity.equalsIgnoreCase("All")) {
+                csvActivityList.add(ActivitySplit.generateActivitySpecificCSV(reader, userID, targetActivity));
             } else {
-                all_activities_csv_reader = ActivitySplit.generateCSVForAllActivities(reader, user_id);
+                csvActivityList = ActivitySplit.generateCSVForAllActivities(reader, userID);
             }
 
-            //----------------------------------------
-            // k=3 because the 3rd element of the
-            // multi dimensional array will contain
-            // the first of the selected analysis.
-            //----------------------------------------
-            int k = 4;
-            int length = commands[i].length;
-
+            // Iterate through analysis operations provided in config file
+            int k = Constants.CONFIG_FILE_COLUMN_ORDER.ANALYSES.ordinal();
             while (commands[i][k]!= null) {
+                String className = commands[i][k].trim();
+                String analysis[] = className.split(":");
+                String param1 = null, param2 = null;
+
+                // Retrieve first and second parameters, if available
+                if (analysis.length >= 2) {
+                    param1 = analysis[Constants.CONFIG_FILE_ANALYSIS_ORDER.PARAM1.ordinal()];
+                }
+                if (analysis.length >= 3) {
+                    param2 = analysis[Constants.CONFIG_FILE_ANALYSIS_ORDER.PARAM2.ordinal()];
+                }
+
+                // Invoke analysis class by reflection
+                className = Constants.ANALYSIS_NAMESPACE.concat(
+                		analysis[Constants.CONFIG_FILE_ANALYSIS_ORDER.OPERATION_NAME.ordinal()]);
+                Class<Analysis> analysisClass = (Class<Analysis>) Class.forName(className);
+                Object classObject = (Object) analysisClass.newInstance();
+                Method analysisMethod = analysisClass.getMethod("beginAnalysis", 
+                		String.class, String.class, String.class, String.class);
+
+                // Perform analysis for all activities indicated by config file
                 int j = 0;
-                String analysis[];
-                String param1 = null;
-                String param2 = null;
-                String class_name = new String();
-                class_name = commands[i][k].trim();
-
-                analysis = class_name.split(":");
-
-                if (analysis.length > 2 || analysis.length == 2) {
-                    param1 = analysis[1];
-                }
-                if (analysis.length > 3 || analysis.length == 3) {
-                    param2 = analysis[2];
-                }
-
-                class_name = analysis[0];
-
-                class_name = "edu.temple.tan.mcianalysis.".concat(class_name);
-                Class analysis_class = Class.forName(class_name);
-                Object class_object = (Object) analysis_class.newInstance();
-                Method analysis_method = analysis_class.getMethod("begin_analysis", String.class, String.class, String.class, String.class);
-
-                while (j < all_activities_csv_reader.size()) {
+                while (j < csvActivityList.size()) {
                     try{
-                    analysis_method.invoke(class_object, all_activities_csv_reader.get(j), user_id, param1, param2);
-                    }
-                    catch(IllegalArgumentException e)
-                    {
+                    	analysisMethod.invoke(classObject, csvActivityList.get(j), userID, param1, param2);
+                    } catch(IllegalArgumentException e) {
                         continue;
                     }
                     j++;
                 }
-                k++;
+                
+                // Analysis operation complete for all activities.  Progress to next.
+                k++;	
             }
-            all_activities_csv_reader.clear();
+            
+            // Clear out the activity list for this command set, and progress to the next
+            csvActivityList.clear();
             i++;
         }
 
-       WriteConfigurationCSV.writeConfigurationSetupCSV();
-       
-       if(direction_utilized)
-            DirectionAggregate.aggregateDirectionCSV();
-       if(pause_utilized)
-        PauseAggregate.aggregatePauseCSV();
+        // Write out final results
+		WriteConfigurationCSV.writeConfigurationSetupCSV();
+		if (direction_utilized) DirectionAggregate.aggregateDirectionCSV();
+		if (pause_utilized) PauseAggregate.aggregatePauseCSV();
+	}
+    
+    /**
+     * Support method to clean up any remaining artifacts from previous executions 
+     * before proceeding with the current execution
+     */
+    private static void removeOldArtifacts() {
+        String absolute_path = new File("").getAbsolutePath();
+        
+        File folder = new File(absolute_path.concat("/Final"));
+        try {
+			FileUtils.deleteDirectory(folder);
+		} catch (IOException e) {
+			// do nothing ... can't delete it if it wasn't there
+		}
+        
+        folder = new File(absolute_path.concat("/Intermediate"));
+        try {
+			FileUtils.deleteDirectory(folder);
+		} catch (IOException e) {
+			// do nothing ... can't delete it if it wasn't there
+		}
+        
+        folder = new File(absolute_path.concat("/Linear"));
+        try {
+			FileUtils.deleteDirectory(folder);
+		} catch (IOException e) {
+			// do nothing ... can't delete it if it wasn't there
+		}
     }
-
 }

@@ -3,10 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package edu.temple.tan.mcianalysis;
+package edu.temple.tan.mcianalysis.analyses;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.MCIAnalysis;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,12 +28,12 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Sarah Lehman
+ * @author philipcoulomb
  */
-public class PauseCount implements Analysis {
+public class PauseDuration implements Analysis {
 
     @Override
-    public void begin_analysis(String file_path, String user_id, String param1, String param2) {
+    public void beginAnalysis(String file_path, String user_id, String param1, String param2) {
         CSVReader reader;
 
         try {
@@ -70,7 +73,7 @@ public class PauseCount implements Analysis {
         Date end_time;
         double duration;
         double diffInSeconds;
-        final double milliseconds_between_readings = 4.34782608696;	// approx 230 times per second
+        final double milliseconds_between_readings = 34.4827586207;	// approx 29 times per second
 
         //components of acceleration
         double x_acceleration = 0;
@@ -122,7 +125,8 @@ public class PauseCount implements Analysis {
             magnitude_of_acceleration = calculateMagnitude(x_acceleration, y_acceleration, z_acceleration);
 
             // action to take if magnitude does not meet the minimum
-            if (magnitude_of_acceleration < minimum_magnitude && consecutive_count < minimum_consecutive_pause) {
+            if (magnitude_of_acceleration < minimum_magnitude) {
+
                 //Need to track how many consecutive readings showed low acceleration
                 if (!previous_was_paused) {
                     //record the timing of the first moment of low acceleration
@@ -132,7 +136,7 @@ public class PauseCount implements Analysis {
                 } else {
                     consecutive_count++;
                 }
-            } else if (previous_was_paused && consecutive_count == minimum_consecutive_pause) {
+            } else if (previous_was_paused && consecutive_count >= minimum_consecutive_pause) {
                 end_time = date_format.parse(nextReadLine[0]);
                 duration = consecutive_count * milliseconds_between_readings;
 
