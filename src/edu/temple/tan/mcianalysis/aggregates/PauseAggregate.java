@@ -1,14 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.temple.tan.mcianalysis.aggregates;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,17 +11,33 @@ import java.util.List;
 
 /**
  *
- * @author philipcoulomb
  */
 public class PauseAggregate {
 
-    public static void aggregatePauseCSV() throws FileNotFoundException, IOException {
+	/**
+	 * 
+	 * @throws IOException
+	 */
+    public static void aggregatePauseCSV() throws IOException {
         String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat("/Final/Pause");
-
-        File directionFolder = new File(absolute_path);
-
-        File[] listOfFiles = directionFolder.listFiles();
+        
+        File pauseFolder = new File(absolute_path.concat("/Final/Pause"));
+        if (pauseFolder.exists()) aggregatePauseDirectory(pauseFolder);
+        
+        pauseFolder = new File(absolute_path.concat("/Final/PauseCount"));
+        if (pauseFolder.exists()) aggregatePauseDirectory(pauseFolder);
+        
+        pauseFolder = new File(absolute_path.concat("/Final/PauseDuration"));
+        if (pauseFolder.exists()) aggregatePauseDirectory(pauseFolder);
+    }
+    
+    /**
+     * 
+     * @param folder
+     * @throws IOException
+     */
+    public static void aggregatePauseDirectory(File folder) throws IOException {
+        File[] listOfFiles = folder.listFiles();
 
         //loop through the directories found within
         for (int i = 0; i < listOfFiles.length; i++) {
@@ -71,14 +81,12 @@ public class PauseAggregate {
                         total_write_line[2] = read_all.get(m-1)[3];
                         total_write_line[3] = read_all.get(m-1)[5];
                         writer.writeNext(total_write_line);
+                        reader.close();
                     }
                 }
                 writer.flush();
                 writer.close();
             }
-
         }
-
     }
-
 }

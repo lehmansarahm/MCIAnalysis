@@ -22,13 +22,9 @@ import java.util.logging.Logger;
  * @author Philip M. Coulomb
  * @author Sarah M. Lehman
  */
-public class PauseCount implements Analysis {
+public class PauseCount extends PauseBase implements Analysis {
 	
-	private static final String OUTPUT_DIR_NAME = "Pause";
-	
-	private static CSVWriter writer;
-	private static int totalPauseCount;
-	private static double totalPauseDuration;
+	private static final String OUTPUT_DIR_NAME = "PauseCount";
 
     /**
      * Initializes the analysis according to a given input data file, userID,
@@ -76,15 +72,8 @@ public class PauseCount implements Analysis {
     private void createPauseAnalysisCSV(String filePath, String pauseThresholdIn, 
 	  String pauseWindowIn) throws IOException, ParseException {
     	// first, make sure parameters are valid
-    	if (pauseThresholdIn == null) {
-    		System.out.println("No minimum magnitude provided for Pause analysis.  " +
-    				"Operation could not be performed.");
-    		return;
-    	} else if (pauseWindowIn == null) {
-    		System.out.println("No pause window value provided for Pause analysis.  " +
-    				"Operation could not be performed.");
-    		return;
-    	}
+    	boolean areValidParameters = validateParameters(pauseThresholdIn, pauseWindowIn);
+    	if (!areValidParameters) return;
     	
     	// Alright, assuming we have valid parameters, let's continue ... 
     	double pauseThreshold = Double.parseDouble(pauseThresholdIn);
@@ -98,12 +87,7 @@ public class PauseCount implements Analysis {
     	CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);
     	// reader.readNext();
     	while ((nextLine = reader.readNext()) != null) {
-    		String accelX = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()];
-    		String accelY = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()];
-    		String accelZ = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()];
-    		double currentMagnitude = ToolkitUtils.calculateMagnitude(Double.parseDouble(accelX), 
-    				Double.parseDouble(accelY), Double.parseDouble(accelZ));
-    		
+    		double currentMagnitude = calculateMagnitude(nextLine);
     		if (currentMagnitude < pauseThreshold) {
     			// we've found a pause instance
     			if (!currentlyPaused) {
@@ -145,79 +129,5 @@ public class PauseCount implements Analysis {
         finalizePauseCSV();
         MCIAnalysis.pause_utilized = true;
         writer.close();
-    }
-
-    /**
-     * Called once an identified pause has ended.  Each line of the CSV will feature 
-     * the time and corresponding row number of the pause's starting and ending scans,
-     * as well as the duration of the pause from start to end.  The final line of the 
-     * CSV will feature totals such as number of pauses, total time spent paused, and 
-     * the average duration of pauses.
-     * 
-     * @param startTime
-     * @param startLineNum
-     * @param endTime
-     * @param endLineNum
-     * @param duration
-     * 
-     * @throws IOException
-     * @throws NumberFormatException
-     */
-    private void addToPauseCSV(String startTime, String startLineNum,  String endTime, 
-	  String endLineNum, double duration) {
-    	// check to see if we need a header row
-		if (totalPauseCount == 0) {
-            writer.writeNext(generateNextLine("Pause Start Time", "Pause Start Line",
-            		"Pause End Time", "Pause End Line", "Pause Duration"));
-		}
-		
-		// write the next content line
-        writer.writeNext(generateNextLine(startTime, startLineNum, endTime, 
-    		endLineNum, String.valueOf(duration)));
-    }
-    
-    /**
-     * Generates a content line for the output file based on the provided parameter values
-     * 
-     * @param startTime
-     * @param startLineNum
-     * @param endTime
-     * @param endLineNum
-     * @param duration
-     * 
-     * @return
-     */
-    private String[] generateNextLine(String startTime, String startLineNum,  String endTime, String endLineNum, 
-	  String duration) {
-        String nextLine[] = new String[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.values().length];
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.START_TIME.ordinal()] = startTime;
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.START_NUM.ordinal()] = startLineNum;
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.END_TIME.ordinal()] = endTime;
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.END_NUM.ordinal()] = endLineNum;
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.DURATION.ordinal()] = duration;
-        return nextLine;
-    }
-    
-    /**
-     * Generates the closing content of the pause output file based on the provided parameter values
-     * 
-     * @param filePath
-     * @param pauseCount
-     * @param totalPauseDuration
-     * 
-     * @throws IOException
-     */
-    private void finalizePauseCSV() throws IOException {
-    	double averagePauseDuration = (totalPauseCount != 0) ? (totalPauseDuration / totalPauseCount) : 0;
-
-        String totalLine[] = new String[Constants.PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.values().length];
-        totalLine[0] = "Number of Pauses:";
-        totalLine[1] = String.valueOf(totalPauseCount);
-        totalLine[2] = "Total Time Spent Paused:";
-        totalLine[3] = String.valueOf(totalPauseDuration);
-        totalLine[4] = "Average Pause Duration:";
-        totalLine[5] = String.valueOf(averagePauseDuration);
-
-        writer.writeNext(totalLine);
     }
 }
