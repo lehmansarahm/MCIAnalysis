@@ -62,7 +62,9 @@ public class Direction implements Analysis {
     // reading to see if the acceleration on a specific component changed
     // more than a certain amount to indicate a change of direction
     //--------------------------------------------------------------------------
-    private void createDirectionAnalysisCSV(String file_path, CSVReader reader, String user_id, String acceleration_change_threshold, String axes_to_analyze) throws IOException, ParseException {
+    private void createDirectionAnalysisCSV(String file_path, CSVReader reader, 
+	  String user_id, String acceleration_change_threshold, String axes_to_analyze) 
+      throws IOException, ParseException {
         String path_to_csv;
         path_to_csv = initialFileSetup(file_path, user_id);
 
@@ -99,7 +101,8 @@ public class Direction implements Analysis {
 			    BufferedWriter bw = new BufferedWriter(fw);
 			    PrintWriter out = new PrintWriter(bw))
 			{
-			    out.println("No minimum magnitude acceleration delta provided for Direction analysis. Analysis could not be performed.\n");
+			    out.println("No minimum magnitude acceleration delta provided for " +
+			    		"Direction analysis. Analysis could not be performed.\n");
 			    //more code
 			} catch (IOException e) {
 			    //exception handling left as an exercise for the reader
@@ -115,7 +118,8 @@ public class Direction implements Analysis {
 			    BufferedWriter bw = new BufferedWriter(fw);
 			    PrintWriter out = new PrintWriter(bw))
 			{
-			    out.println("No axes to analyze provided to Direction analysis. Analysis could not be performed.\n");
+			    out.println("No axes to analyze provided to Direction analysis. " +
+			    		"Analysis could not be performed.\n");
 			    //more code
 			} catch (IOException e) {
 			    //exception handling left as an exercise for the reader
@@ -187,9 +191,13 @@ public class Direction implements Analysis {
                 change_y_acceleration = Math.abs(change_y_acceleration);
 
                 if (first_line_read) {
-                    if (change_x_acceleration > maximum_change_threshold || change_y_acceleration > maximum_change_threshold) {
+                    if (change_x_acceleration > maximum_change_threshold || 
+                    		change_y_acceleration > maximum_change_threshold) {
                         start_time = date_format.parse(nextReadLine[0]);
-                        writeDirectionCSV(start_time, previous_x_acceleration, current_x_acceleration, change_x_acceleration, previous_y_acceleration, current_y_acceleration, change_y_acceleration, path_to_csv);
+                        writeDirectionCSV(start_time, previous_x_acceleration, 
+                        		current_x_acceleration, change_x_acceleration, 
+                        		previous_y_acceleration, current_y_acceleration, 
+                        		change_y_acceleration, path_to_csv);
                         direction_change_recorded = true;
                     }
                 } else {
@@ -229,7 +237,9 @@ public class Direction implements Analysis {
     // of the csv will feature totals such as the number of pauses and
     // the average duration of pauses.
     //------------------------------------------------------------------
-    private void writeDirectionCSV(Date start_time, double previous_x_acceleration, double current_x_acceleration, double change_x_acceleration, double previous_y_acceleration, double current_y_acceleration, double change_y_acceleration, String file_path) throws IOException {
+    private void writeDirectionCSV(Date start_time, double previous_x_acceleration, 
+	  double current_x_acceleration, double change_x_acceleration, double previous_y_acceleration, 
+	  double current_y_acceleration, double change_y_acceleration, String file_path) throws IOException {
         CSVWriter direction_csv_writer = null;
         List<String[]> read_all = new ArrayList<String[]>();
         List<String[]> write_all = new ArrayList<String[]>();
