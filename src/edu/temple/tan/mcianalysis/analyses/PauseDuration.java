@@ -84,31 +84,32 @@ public class PauseDuration extends PauseBase implements Analysis {
     	
     	// Iterate through reader contents ...
     	CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);
-    	// reader.readNext();
     	while ((nextLine = reader.readNext()) != null) {
-    		double currentMagnitude = calculateMagnitude(nextLine);
-    		if (currentMagnitude < pauseThreshold) {
-    			// we've found a pause instance
-    			if (!currentlyPaused) {
-    				// new pause instance ... log the starting details
-    				startTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
-    				startNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
-    				currentlyPaused = true;
-    			}
-    			
-    			// whether starting a new pause or continuing an old, 
-    			// log the last sub-threshold values and bump the pause counter
-				lastTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
-				lastNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
-				windowCount++;
-    		} else {
-        		// check to see if we've completed a pause window
-    			verifyPause(currentlyPaused, (windowCount >= pauseWindow), startTime, 
-    					startNo, lastTime, lastNo, windowCount);
-    			
-    			// measurement denotes active movement ... reset pause details
-    			currentlyPaused = false;
-    			windowCount = 0;
+    		if (!isHeaderLine(nextLine)) {
+        		double currentMagnitude = calculateMagnitude(nextLine);
+        		if (currentMagnitude < pauseThreshold) {
+        			// we've found a pause instance
+        			if (!currentlyPaused) {
+        				// new pause instance ... log the starting details
+        				startTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
+        				startNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
+        				currentlyPaused = true;
+        			}
+        			
+        			// whether starting a new pause or continuing an old, 
+        			// log the last sub-threshold values and bump the pause counter
+    				lastTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
+    				lastNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
+    				windowCount++;
+        		} else {
+            		// check to see if we've completed a pause window
+        			verifyPause(currentlyPaused, (windowCount >= pauseWindow), startTime, 
+        					startNo, lastTime, lastNo, windowCount);
+        			
+        			// measurement denotes active movement ... reset pause details
+        			currentlyPaused = false;
+        			windowCount = 0;
+        		}
     		}
     	}
     	reader.close();

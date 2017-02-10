@@ -39,6 +39,16 @@ public class PauseBase {
 	 * @param nextLine
 	 * @return
 	 */
+	protected boolean isHeaderLine(String nextLine[]) {
+		String time =  nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
+		return (time.equals("Time:"));
+	}
+	
+	/**
+	 * 
+	 * @param nextLine
+	 * @return
+	 */
 	protected double calculateMagnitude(String nextLine[]) {
 		String accelX = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()];
 		String accelY = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()];

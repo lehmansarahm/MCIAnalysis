@@ -85,42 +85,43 @@ public class PauseCount extends PauseBase implements Analysis {
     	
     	// Iterate through reader contents ...
     	CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);
-    	// reader.readNext();
     	while ((nextLine = reader.readNext()) != null) {
-    		double currentMagnitude = calculateMagnitude(nextLine);
-    		if (currentMagnitude < pauseThreshold) {
-    			// we've found a pause instance
-    			if (!currentlyPaused) {
-    				// new pause instance ... log the starting details
-    				startTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
-    				startNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
-    				currentlyPaused = true;
-    			}
-    			// whether starting a new pause or continuing an old, bump the pause counter
-				windowCount++;
-    		} else {
-    			// measurement denotes active movement ... reset pause details
-    			currentlyPaused = false;
-    			windowCount = 0;
-    		}
-    		
-    		// check to see if we've completed a pause window
-    		if (currentlyPaused && windowCount == pauseWindow) {
-    			// log ending details
-    			endTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
-    			endNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
-    			
-    			// determine the current duration and add to our running total
-    			currentDuration = windowCount * Constants.SAMPLING_RATE;
-    			totalPauseDuration += currentDuration;
-    			
-    			// output pause details to file
-            	addToPauseCSV(startTime, startNo, endTime, endNo, currentDuration);
-            	totalPauseCount++;
-            	
-            	// reset pause details
-    			currentlyPaused = false;
-    			windowCount = 0;
+    		if (!isHeaderLine(nextLine)) {
+	    		double currentMagnitude = calculateMagnitude(nextLine);
+	    		if (currentMagnitude < pauseThreshold) {
+	    			// we've found a pause instance
+	    			if (!currentlyPaused) {
+	    				// new pause instance ... log the starting details
+	    				startTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
+	    				startNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
+	    				currentlyPaused = true;
+	    			}
+	    			// whether starting a new pause or continuing an old, bump the pause counter
+					windowCount++; 
+	    		} else {
+	    			// measurement denotes active movement ... reset pause details
+	    			currentlyPaused = false;
+	    			windowCount = 0;
+	    		}
+	    		
+	    		// check to see if we've completed a pause window
+	    		if (currentlyPaused && windowCount == pauseWindow) {
+	    			// log ending details
+	    			endTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
+	    			endNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
+	    			
+	    			// determine the current duration and add to our running total
+	    			currentDuration = windowCount * Constants.SAMPLING_RATE;
+	    			totalPauseDuration += currentDuration;
+	    			
+	    			// output pause details to file
+	            	addToPauseCSV(startTime, startNo, endTime, endNo, currentDuration);
+	            	totalPauseCount++;
+	            	
+	            	// reset pause details
+	    			currentlyPaused = false;
+	    			windowCount = 0;
+	    		}
     		}
     	}
     	reader.close();
