@@ -78,9 +78,8 @@ public class PauseDuration extends PauseBase implements Analysis {
     	// Alright, assuming we have valid parameters, let's continue ... 
     	double pauseThreshold = Double.parseDouble(pauseThresholdIn);
     	int pauseWindow = Integer.parseInt(pauseWindowIn);
-    	String startTime = "", startNo = "", endTime, endNo, nextLine[];
+    	String startTime = "", startNo = "", lastTime = "", lastNo = "", nextLine[];
     	boolean currentlyPaused = false;
-        double currentDuration;
     	int windowCount = 0;
     	
     	// Iterate through reader contents ...
@@ -96,23 +95,16 @@ public class PauseDuration extends PauseBase implements Analysis {
     				startNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
     				currentlyPaused = true;
     			}
-    			// whether starting a new pause or continuing an old, bump the pause counter
+    			
+    			// whether starting a new pause or continuing an old, 
+    			// log the last sub-threshold values and bump the pause counter
+				lastTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
+				lastNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
 				windowCount++;
     		} else {
         		// check to see if we've completed a pause window
-    			if (currentlyPaused && windowCount >= pauseWindow) {
-        			// log ending details
-        			endTime = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
-        			endNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
-        			
-        			// determine the current duration and add to our running total
-        			currentDuration = windowCount * Constants.SAMPLING_RATE;
-        			totalPauseDuration += currentDuration;
-        			
-        			// output pause details to file
-                	addToPauseCSV(startTime, startNo, endTime, endNo, currentDuration);
-                	totalPauseCount++;
-    			}
+    			verifyPause(currentlyPaused, (windowCount >= pauseWindow), startTime, 
+    					startNo, lastTime, lastNo, windowCount);
     			
     			// measurement denotes active movement ... reset pause details
     			currentlyPaused = false;
@@ -120,10 +112,32 @@ public class PauseDuration extends PauseBase implements Analysis {
     		}
     	}
     	reader.close();
+    	
+    	// it's possible that the last record of the data set is a pause
+    	// (will not trigger automatically if there is no invalid record following)
+		verifyPause(currentlyPaused, (windowCount >= pauseWindow), startTime, 
+				startNo, lastTime, lastNo, windowCount);
 
     	// Finalize the output file and update toolkit state
         finalizePauseCSV();
         MCIAnalysis.pause_utilized = true;
         writer.close();
+    }
+    
+    private void verifyPause(boolean currentlyPaused, boolean validWindow, String startTime, 
+	  String startNo, String lastTime, String lastNo, int windowCount) {
+		if (currentlyPaused && validWindow) {
+			// log ending details (from the last valid record, not this one)
+			String endTime = lastTime;
+			String endNo = lastNo;
+			
+			// determine the current duration and add to our running total
+			Double currentDuration = windowCount * Constants.SAMPLING_RATE;
+			totalPauseDuration += currentDuration;
+			
+			// output pause details to file
+        	addToPauseCSV(startTime, startNo, endTime, endNo, currentDuration);
+        	totalPauseCount++;
+		}
     }
 }
