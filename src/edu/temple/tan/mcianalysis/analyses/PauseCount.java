@@ -96,7 +96,7 @@ public class PauseCount implements Analysis {
     	
     	// Iterate through reader contents ...
     	CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);
-    	reader.readNext();
+    	// reader.readNext();
     	while ((nextLine = reader.readNext()) != null) {
     		double currentMagnitude = ToolkitUtils.calculateMagnitude(
 				Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()]), 
