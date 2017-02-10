@@ -35,7 +35,12 @@ public class ActivitySplit {
         //----------------------------------------------------------------------
         // The new csv file name will be the user id, activity, and time stamp
         //----------------------------------------------------------------------
-        String file_name = "/Intermediate/" + user_id + "_" + requested_activity + "_" + time_stamp + ".csv";
+        String absolute_path = new File("").getAbsolutePath();
+        absolute_path = absolute_path.concat("/Intermediate");
+        new File(absolute_path).mkdirs();
+        
+        String file_name = "/Intermediate/" + user_id + "_" 
+        		+ requested_activity.replace(" ", "_") + "_" + time_stamp + ".csv";
         String full_file_path = file_path.concat(file_name);
 
         CSVWriter activity_csv_writer = new CSVWriter(new FileWriter(full_file_path));

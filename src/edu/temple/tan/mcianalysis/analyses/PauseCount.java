@@ -98,11 +98,11 @@ public class PauseCount implements Analysis {
     	CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);
     	reader.readNext();
     	while ((nextLine = reader.readNext()) != null) {
-    		double accelX = Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()]);
-    		double accelY = Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()]);
-    		double accelZ = Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()]);
+    		double currentMagnitude = ToolkitUtils.calculateMagnitude(
+				Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()]), 
+				Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()]), 
+				Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()]));
     		
-    		double currentMagnitude = ToolkitUtils.calculateMagnitude(accelX, accelY, accelZ);
     		if (currentMagnitude < pauseThreshold) {
     			// we've found a pause instance
     			if (!currentlyPaused) {
