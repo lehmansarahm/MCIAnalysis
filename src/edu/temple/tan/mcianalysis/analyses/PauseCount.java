@@ -98,10 +98,11 @@ public class PauseCount implements Analysis {
     	CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);
     	// reader.readNext();
     	while ((nextLine = reader.readNext()) != null) {
-    		double currentMagnitude = ToolkitUtils.calculateMagnitude(
-				Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()]), 
-				Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()]), 
-				Double.parseDouble(nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()]));
+    		String accelX = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()];
+    		String accelY = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()];
+    		String accelZ = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()];
+    		double currentMagnitude = ToolkitUtils.calculateMagnitude(Double.parseDouble(accelX), 
+    				Double.parseDouble(accelY), Double.parseDouble(accelZ));
     		
     		if (currentMagnitude < pauseThreshold) {
     			// we've found a pause instance
@@ -162,11 +163,11 @@ public class PauseCount implements Analysis {
      * @throws IOException
      * @throws NumberFormatException
      */
-    private void addToPauseCSV(String startTime, String startLineNum, String endTime, 
+    private void addToPauseCSV(String startTime, String startLineNum,  String endTime, 
 	  String endLineNum, double duration) {
     	// check to see if we need a header row
 		if (totalPauseCount == 0) {
-            writer.writeNext(generateNextLine("Pause Start Time", "Pause Start Line", 
+            writer.writeNext(generateNextLine("Pause Start Time", "Pause Start Line",
             		"Pause End Time", "Pause End Line", "Pause Duration"));
 		}
 		
@@ -186,11 +187,12 @@ public class PauseCount implements Analysis {
      * 
      * @return
      */
-    private String[] generateNextLine(String startTime, String startLineNum, String endTime, String endLineNum, String duration) {
+    private String[] generateNextLine(String startTime, String startLineNum,  String endTime, String endLineNum, 
+	  String duration) {
         String nextLine[] = new String[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.values().length];
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.START_TIME.ordinal()] = startTime.toString();
+        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.START_TIME.ordinal()] = startTime;
         nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.START_NUM.ordinal()] = startLineNum;
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.END_TIME.ordinal()] = endTime.toString();
+        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.END_TIME.ordinal()] = endTime;
         nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.END_NUM.ordinal()] = endLineNum;
         nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.DURATION.ordinal()] = duration;
         return nextLine;
