@@ -5,11 +5,12 @@ import com.opencsv.CSVReader;
 import edu.temple.tan.mcianalysis.aggregates.DirectionAggregate;
 import edu.temple.tan.mcianalysis.aggregates.PauseAggregate;
 import edu.temple.tan.mcianalysis.analyses.Analysis;
+import edu.temple.tan.mcianalysis.config.AnalysisCommand;
+import edu.temple.tan.mcianalysis.config.ConfigCommand;
+import edu.temple.tan.mcianalysis.config.ConfigInterpreter;
 import edu.temple.tan.mcianalysis.utils.AccelerationProcessing;
 import edu.temple.tan.mcianalysis.utils.ActivitySplit;
 import edu.temple.tan.mcianalysis.utils.Constants;
-import edu.temple.tan.mcianalysis.utils.ScriptInterpreter;
-import edu.temple.tan.mcianalysis.utils.WriteConfigurationCSV;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,7 +36,6 @@ import org.apache.commons.io.FileUtils;
 public class MCIAnalysis {
 
     public static Set<String> requested_activities_set = new HashSet<>();
-    public static String[][] configuration = new String[1000][1];
     public static String run_time;
     public static String acceleration_processing;
     public static boolean direction_utilized = false;
@@ -54,25 +54,26 @@ public class MCIAnalysis {
     	// before anything else, clear out artifacts from last execution
     	removeOldArtifacts();
     	
-        String[][] commands = ScriptInterpreter.loadCommands();
+        List<ConfigCommand> commands = ConfigInterpreter.loadNewCommands();
         String filePath = new File("").getAbsolutePath();
         List<String> csvActivityList = new ArrayList<String>();
 
-        int i = 0;
-        while (i < commands.length && 
-		  commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.USERNAME.ordinal()] != null) {
+        for (ConfigCommand command : commands) {
         	// Retrieve the initial command details (username, input file, 
         	// target activity, accel. proc. mode)
-        	String userID = 
-        			commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.USERNAME.ordinal()].trim();
-            String rawFilename = 
-            		commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.INPUT_FILE.ordinal()].toString().trim();
+        	String userID = command.getUsername();
+        	//System.out.println("Parsed userID: " + userID);
+        	
+            String rawFilename = command.getSourceFile();
             String targetFile = filePath.concat(rawFilename);
+        	//System.out.println("Parsed targetFile: " + targetFile);
             
-            String targetActivity = 
-            		commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.TASK.ordinal()].toString().trim();
-            int acceleration_process = Integer.valueOf(
-            		commands[i][Constants.CONFIG_FILE_COLUMN_ORDER.ACCEL_PROCESSING.ordinal()]);
+            String targetActivity = command.getTaskName();
+        	//System.out.println("Parsed targetActivity: " + targetActivity);
+        	
+            int acceleration_process = command.getAccelProcess();
+        	//System.out.println("Parsed acceleration_process: " + 
+        	//		((acceleration_process == 0) ? "raw" : "linear"));
 
             // CSVReader reader is one of two arguments to be passed to the
             // analysis methods, to be populated based on accel. processing selection
@@ -97,50 +98,32 @@ public class MCIAnalysis {
             }
 
             // Iterate through analysis operations provided in config file
-            int k = Constants.CONFIG_FILE_COLUMN_ORDER.ANALYSES.ordinal();
-            while (commands[i][k]!= null) {
-                String className = commands[i][k].trim();
-                String analysis[] = className.split(":");
-                String param1 = null, param2 = null;
-
-                // Retrieve first and second parameters, if available
-                if (analysis.length >= 2) {
-                    param1 = analysis[Constants.CONFIG_FILE_ANALYSIS_ORDER.PARAM1.ordinal()];
-                }
-                if (analysis.length >= 3) {
-                    param2 = analysis[Constants.CONFIG_FILE_ANALYSIS_ORDER.PARAM2.ordinal()];
-                }
-
+            List<AnalysisCommand> analysisOps = command.getAnalysisOps();
+            for (AnalysisCommand analysisOp : analysisOps) {
                 // Invoke analysis class by reflection
-                className = Constants.ANALYSIS_NAMESPACE.concat(
-                		analysis[Constants.CONFIG_FILE_ANALYSIS_ORDER.OPERATION_NAME.ordinal()]);
+                String className = Constants.ANALYSIS_NAMESPACE.concat(analysisOp.getOperationName());
                 Class<Analysis> analysisClass = (Class<Analysis>) Class.forName(className);
                 Object classObject = (Object) analysisClass.newInstance();
                 Method analysisMethod = analysisClass.getMethod("beginAnalysis", 
                 		String.class, String.class, String.class, String.class);
 
                 // Perform analysis for all activities indicated by config file
-                int j = 0;
-                while (j < csvActivityList.size()) {
-                    try{
-                    	analysisMethod.invoke(classObject, csvActivityList.get(j), userID, param1, param2);
+                for (String activity : csvActivityList) {
+                    try {
+                    	analysisMethod.invoke(classObject, activity, userID, 
+                			analysisOp.getParam1(), analysisOp.getParam2());
                     } catch(IllegalArgumentException e) {
                         continue;
                     }
-                    j++;
                 }
-                
-                // Analysis operation complete for all activities.  Progress to next.
-                k++;	
             }
             
             // Clear out the activity list for this command set, and progress to the next
             csvActivityList.clear();
-            i++;
         }
 
         // Write out final results
-		WriteConfigurationCSV.writeConfigurationSetupCSV();
+		ConfigInterpreter.writeConfigSettingsToOutputFiles();
 		if (direction_utilized) DirectionAggregate.aggregateDirectionCSV();
 		if (pause_utilized) PauseAggregate.aggregatePauseCSV();
 	}

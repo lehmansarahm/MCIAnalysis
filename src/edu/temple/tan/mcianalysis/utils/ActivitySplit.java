@@ -24,7 +24,8 @@ import java.util.List;
  */
 public class ActivitySplit {
 
-    public static String generateActivitySpecificCSV(CSVReader csv_file, String user_id, String requested_activity) throws IOException {
+    public static String generateActivitySpecificCSV(CSVReader csv_file, String user_id, 
+	  String requested_activity) throws IOException {
         String file_path = new File("").getAbsolutePath();
 
         String time_stamp = new SimpleDateFormat("yyyy-MM-dd_HH_mm").format(new java.util.Date());
@@ -98,7 +99,8 @@ public class ActivitySplit {
                 //----------------------------------------------------------------------
                 // The new csv file name will be the user id, activity, and time stamp
                 //----------------------------------------------------------------------
-                String file_name = "/Intermediate/" + user_id + "_" + MCIAnalysis.acceleration_processing + "_" + requested_activity + "_" + time_stamp + ".csv";
+                String file_name = "/Intermediate/" + user_id + "_" + MCIAnalysis.acceleration_processing 
+                		+ "_" + requested_activity.replace(" ", "_") + "_" + time_stamp + ".csv";
                 full_file_path = file_path.concat(file_name);
 
                 activity_csv_writer = new CSVWriter(new FileWriter(full_file_path));

@@ -62,7 +62,7 @@ public class PauseAggregate {
                         String[] name_components = innerFiles[j].getName().split("_");
                         String task_name = "";
 
-                        if (name_components.length == 3 || name_components.length > 3) {
+                        if (name_components.length >= 3) {
                             task_name = name_components[3];
                         }
                         List<String[]> read_all = new ArrayList<String[]>();
