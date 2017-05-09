@@ -4,6 +4,7 @@ import com.opencsv.CSVReader;
 
 import edu.temple.tan.mcianalysis.aggregates.DirectionAggregate;
 import edu.temple.tan.mcianalysis.aggregates.PauseAggregate;
+import edu.temple.tan.mcianalysis.aggregates.UserAggregate;
 import edu.temple.tan.mcianalysis.analyses.Analysis;
 import edu.temple.tan.mcianalysis.config.AnalysisCommand;
 import edu.temple.tan.mcianalysis.config.ConfigCommand;
@@ -126,6 +127,7 @@ public class MCIAnalysis {
 		ConfigInterpreter.writeConfigSettingsToOutputFiles();
 		if (direction_utilized) DirectionAggregate.aggregateDirectionCSV();
 		if (pause_utilized) PauseAggregate.aggregatePauseCSV();
+		UserAggregate.aggregateUserComparisonCSV();
 	}
     
     /**
