@@ -7,6 +7,9 @@ package edu.temple.tan.mcianalysis.analyses;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.MCIAnalysis;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -155,10 +158,9 @@ public class TaskTime implements Analysis {
             writer.writeNext(total_line);
             
            writer.close();
-            
-
-
         }
+        
+        MCIAnalysis.time_utilized = true;
     }
 
     //-----------------------------------------------------------------------------
@@ -173,7 +175,7 @@ public class TaskTime implements Analysis {
         String absolute_path = new File("").getAbsolutePath();
         absolute_path = absolute_path.concat("/Final");
         new File(absolute_path).mkdirs();
-        absolute_path = absolute_path.concat("/Tasktime");
+        absolute_path = absolute_path.concat("/TaskTime");
         new File(absolute_path).mkdirs();
         
         absolute_path = absolute_path.concat("/"+user_id);

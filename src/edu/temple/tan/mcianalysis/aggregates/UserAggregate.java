@@ -19,13 +19,13 @@ public class UserAggregate {
 	 */
     public static void aggregateUserComparisonCSV() {
         try {
-        	List<AnalysisUserSummary> summaries = new ArrayList<>();
+        	List<UserSummary> summaries = new ArrayList<>();
         	List<String> userNames = new ArrayList<>();
         	File finalDir = new File("./Final");
         	
         	File[] analysisDirs = finalDir.listFiles();
         	for (File analysisDir : analysisDirs) {
-        		AnalysisUserSummary summary = new AnalysisUserSummary(analysisDir.getName());
+        		UserSummary summary = new UserSummary(analysisDir.getName());
         		File[] users = analysisDir.listFiles();
         		
         		for (File user : users) {
@@ -53,7 +53,15 @@ public class UserAggregate {
         		summaries.add(summary);
         	}
 
-            String path_to_csv = new File("").getAbsolutePath().concat("/Final/UserComparison.csv");
+    		/*
+    		 * ----------------------------------------------------------------------
+    		 * CURRENT SUCCESS CASE: mult. users, different names/same tasks
+    		 * ----------------------------------------------------------------------
+    		 * CURRENT FAILING CASES: mult. users, same names or different tasks
+    		 * ----------------------------------------------------------------------
+    		 */
+    		
+            String path_to_csv = new File("").getAbsolutePath().concat("/Final/UserSummary.csv");
             CSVWriter writer = new CSVWriter(new FileWriter(path_to_csv));
             writer.writeAll(generateOutputArrays(summaries));
             writer.close();
@@ -70,9 +78,9 @@ public class UserAggregate {
      * @param userNames
      * @return
      */
-	private static List<String[]> generateOutputArrays(List<AnalysisUserSummary> summaries) {
+	private static List<String[]> generateOutputArrays(List<UserSummary> summaries) {
     	List<String[]> output = new ArrayList<>();
-        for (AnalysisUserSummary summary : summaries) output.addAll(summary.toOutputArray());
+        for (UserSummary summary : summaries) output.addAll(summary.toOutputArray());
     	return output;
     }
     

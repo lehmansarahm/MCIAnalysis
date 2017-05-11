@@ -12,23 +12,16 @@ import java.util.List;
 /**
  *
  */
-public class PauseAggregate {
+public class TimeAggregate {
 
 	/**
 	 * 
 	 * @throws IOException
 	 */
-    public static void aggregatePauseCSV() throws IOException {
+    public static void aggregateTimeCSV() throws IOException {
         String absolute_path = new File("").getAbsolutePath();
-        
-        File pauseFolder = new File(absolute_path.concat("/Final/Pause"));
-        if (pauseFolder.exists()) aggregatePauseDirectory(pauseFolder, true);
-        
-        pauseFolder = new File(absolute_path.concat("/Final/PauseCount"));
-        if (pauseFolder.exists()) aggregatePauseDirectory(pauseFolder, true);
-        
-        pauseFolder = new File(absolute_path.concat("/Final/PauseDuration"));
-        if (pauseFolder.exists()) aggregatePauseDirectory(pauseFolder, false);
+        File timeFolder = new File(absolute_path.concat("/Final/TaskTime"));
+        if (timeFolder.exists()) aggregateTimeDirectory(timeFolder);
     }
     
     /**
@@ -36,7 +29,7 @@ public class PauseAggregate {
      * @param folder
      * @throws IOException
      */
-    public static void aggregatePauseDirectory(File folder, boolean isCount) throws IOException {
+    private static void aggregateTimeDirectory(File folder) throws IOException {
         File[] listOfFiles = folder.listFiles();
 
         //loop through the directories found within
@@ -44,42 +37,36 @@ public class PauseAggregate {
             //if the file is a directory we want to go into it and aggregate the direction changes
             if (listOfFiles[i].isDirectory()) {
                 File[] innerFiles = listOfFiles[i].listFiles();
-                String total_write_line[] = new String[4];
+                String total_write_line[] = new String[2];
                 String writer_path = listOfFiles[i].getAbsolutePath();
-                writer_path = writer_path.concat("/TaskPause" + (isCount ? "Count" : "Duration") + ".csv");
+                writer_path = writer_path.concat("/TaskTimes.csv");
                 CSVWriter writer = new CSVWriter(new FileWriter(writer_path));
 
                 total_write_line[0] = "Task:";
-                total_write_line[1] = "Number of Pauses:";
-                total_write_line[2] = "Total Time Paused:";
-                total_write_line[3] = "Average Pause Duration:";
+                total_write_line[1] = "Time (Sec):";
 
                 writer.writeNext(total_write_line);
 
                 //loop through the inner directory
                 for (int j = 0; j < innerFiles.length; j++) {
-                    if (!innerFiles[j].getName().equals("TaskPauses.csv")) {
-                        String[] name_components = innerFiles[j].getName().split("_");
+                    if (!innerFiles[j].getName().equals("TaskTimes.csv")) {
                         String task_name = "";
-
+                        String[] name_components = innerFiles[j].getName().split("_");
                         if (name_components.length >= 3) {
-                            task_name = name_components[3];
+                            task_name = name_components[2];
                         }
+                        
                         List<String[]> read_all = new ArrayList<String[]>();
-
-                        String full_file_path = innerFiles[j].getAbsolutePath();
-
-                        CSVReader reader = new CSVReader(new FileReader(full_file_path), ',', '"', 0);
+                        CSVReader reader = new CSVReader(new FileReader(innerFiles[j].getAbsolutePath()), ',', '"', 0);
                         read_all = reader.readAll();
+                        
                         int m = 0;
-                        while(!read_all.get(m)[0].equalsIgnoreCase("Configuration File Used:") && m<read_all.size())
-                        {
+                        while(!read_all.get(m)[0].equalsIgnoreCase("Configuration File Used:") && m < read_all.size()) {
                             m++;
                         }
+                        
                         total_write_line[0] = task_name;
                         total_write_line[1] = read_all.get(m-1)[1];
-                        total_write_line[2] = read_all.get(m-1)[3];
-                        total_write_line[3] = read_all.get(m-1)[5];
                         writer.writeNext(total_write_line);
                         reader.close();
                     }

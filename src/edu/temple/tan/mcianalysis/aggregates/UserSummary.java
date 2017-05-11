@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class AnalysisUserSummary {
+public class UserSummary {
 
 	private String analysisName;
 	private Map<String, SubtaskResult> subtasks = new HashMap<String, SubtaskResult>();
@@ -18,7 +18,7 @@ public class AnalysisUserSummary {
 	 * 
 	 * @param analysisName
 	 */
-	public AnalysisUserSummary(String analysisName) {
+	public UserSummary(String analysisName) {
 		this.analysisName = analysisName;
 	}
 	
@@ -39,7 +39,7 @@ public class AnalysisUserSummary {
 				if (!subtasks.containsKey(subtask)) subtasks.put(subtask, new SubtaskResult(subtask));
 				subtasks.get(subtask).addResult(header, user, summary);
 			}
-		} else Logger.getLogger(AnalysisUserSummary.class.getName()).log(Level.SEVERE, null, "Bad summary input");
+		} else Logger.getLogger(UserSummary.class.getName()).log(Level.SEVERE, null, "Bad summary input");
 	}
 	
 	/**

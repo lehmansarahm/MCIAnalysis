@@ -4,6 +4,7 @@ import com.opencsv.CSVReader;
 
 import edu.temple.tan.mcianalysis.aggregates.DirectionAggregate;
 import edu.temple.tan.mcianalysis.aggregates.PauseAggregate;
+import edu.temple.tan.mcianalysis.aggregates.TimeAggregate;
 import edu.temple.tan.mcianalysis.aggregates.UserAggregate;
 import edu.temple.tan.mcianalysis.analyses.Analysis;
 import edu.temple.tan.mcianalysis.config.AnalysisCommand;
@@ -41,6 +42,7 @@ public class MCIAnalysis {
     public static String acceleration_processing;
     public static boolean direction_utilized = false;
     public static boolean pause_utilized = false;
+    public static boolean time_utilized = false;
     
     /**
      * Primary operation method
@@ -60,73 +62,83 @@ public class MCIAnalysis {
         List<String> csvActivityList = new ArrayList<String>();
 
         for (ConfigCommand command : commands) {
-        	// Retrieve the initial command details (username, input file, 
-        	// target activity, accel. proc. mode)
-        	String userID = command.getUsername();
-        	//System.out.println("Parsed userID: " + userID);
-        	
-            String rawFilename = command.getSourceFile();
-            String targetFile = filePath.concat(rawFilename);
-        	//System.out.println("Parsed targetFile: " + targetFile);
+        	String[] userIDList = command.getUsername().split(",");
+            String[] rawFilenameList = command.getSourceFile().split(",");
             
-            String targetActivity = command.getTaskName();
-        	//System.out.println("Parsed targetActivity: " + targetActivity);
-        	
-            int acceleration_process = command.getAccelProcess();
-        	//System.out.println("Parsed acceleration_process: " + 
-        	//		((acceleration_process == 0) ? "raw" : "linear"));
+            // only continue with the analysis if the number of users 
+            // provided matches the number of data files
+            if (userIDList.length == rawFilenameList.length) {
+            	for (int i = 0; i < userIDList.length; i++) {
+                	// Retrieve the initial command details (username, input file, 
+                	// target activity, accel. proc. mode)
+            		String userID = userIDList[i];
+                	//System.out.println("Parsed userID: " + userID);
 
-            // CSVReader reader is one of two arguments to be passed to the
-            // analysis methods, to be populated based on accel. processing selection
-            CSVReader reader = new CSVReader(new FileReader(targetFile), ',', '"', 0);
-            switch (acceleration_process) {
-                case 0:
-                    acceleration_processing = "Raw";
-                    break;
-                case 1:
-                    acceleration_processing = "Linear";
-	                reader = AccelerationProcessing.convertToLinearAcceleration(reader, rawFilename);
-	                break;
-                default:
-                    break;
-            }
-            
-            // Split out activity list based on user selection
-            if (!targetActivity.equalsIgnoreCase("All")) {
-                csvActivityList.add(ActivitySplit.generateActivitySpecificCSV(reader, userID, targetActivity));
-            } else {
-                csvActivityList = ActivitySplit.generateCSVForAllActivities(reader, userID);
-            }
+            		String rawFilename = rawFilenameList[i];
+                    String targetFile = filePath.concat(rawFilename);
+                	//System.out.println("Parsed targetFile: " + targetFile);
+                    
+                    String targetActivity = command.getTaskName();
+                	//System.out.println("Parsed targetActivity: " + targetActivity);
+                	
+                    int acceleration_process = command.getAccelProcess();
+                	//System.out.println("Parsed acceleration_process: " + 
+                	//		((acceleration_process == 0) ? "raw" : "linear"));
 
-            // Iterate through analysis operations provided in config file
-            List<AnalysisCommand> analysisOps = command.getAnalysisOps();
-            for (AnalysisCommand analysisOp : analysisOps) {
-                // Invoke analysis class by reflection
-                String className = Constants.ANALYSIS_NAMESPACE.concat(analysisOp.getOperationName());
-                Class<Analysis> analysisClass = (Class<Analysis>) Class.forName(className);
-                Object classObject = (Object) analysisClass.newInstance();
-                Method analysisMethod = analysisClass.getMethod("beginAnalysis", 
-                		String.class, String.class, String.class, String.class);
-
-                // Perform analysis for all activities indicated by config file
-                for (String activity : csvActivityList) {
-                    try {
-                    	analysisMethod.invoke(classObject, activity, userID, 
-                			analysisOp.getParam1(), analysisOp.getParam2());
-                    } catch(IllegalArgumentException e) {
-                        continue;
+                    // CSVReader reader is one of two arguments to be passed to the
+                    // analysis methods, to be populated based on accel. processing selection
+                    CSVReader reader = new CSVReader(new FileReader(targetFile), ',', '"', 0);
+                    switch (acceleration_process) {
+                        case 0:
+                            acceleration_processing = "Raw";
+                            break;
+                        case 1:
+                            acceleration_processing = "Linear";
+        	                reader = AccelerationProcessing.convertToLinearAcceleration(reader, rawFilename);
+        	                break;
+                        default:
+                            break;
                     }
-                }
+                    
+                    // Split out activity list based on user selection
+                    if (!targetActivity.equalsIgnoreCase("All")) {
+                        csvActivityList.add(ActivitySplit.generateActivitySpecificCSV(reader, userID, targetActivity));
+                    } else {
+                        csvActivityList = ActivitySplit.generateCSVForAllActivities(reader, userID);
+                    }
+
+                    // Iterate through analysis operations provided in config file
+                    List<AnalysisCommand> analysisOps = command.getAnalysisOps();
+                    for (AnalysisCommand analysisOp : analysisOps) {
+                        // Invoke analysis class by reflection
+                        String className = Constants.ANALYSIS_NAMESPACE.concat(analysisOp.getOperationName());
+                        Class<Analysis> analysisClass = (Class<Analysis>) Class.forName(className);
+                        Object classObject = (Object) analysisClass.newInstance();
+                        Method analysisMethod = analysisClass.getMethod("beginAnalysis", 
+                        		String.class, String.class, String.class, String.class);
+
+                        // Perform analysis for all activities indicated by config file
+                        for (String activity : csvActivityList) {
+                            try {
+                            	analysisMethod.invoke(classObject, activity, userID, 
+                        			analysisOp.getParam1(), analysisOp.getParam2());
+                            } catch(IllegalArgumentException e) {
+                                continue;
+                            }
+                        }
+                    }
+                    
+                    // Clear out the activity list for this command set, and progress to the next
+                    csvActivityList.clear();
+            	}
             }
-            
-            // Clear out the activity list for this command set, and progress to the next
-            csvActivityList.clear();
         }
 
         // Write out final results
 		ConfigInterpreter.writeConfigSettingsToOutputFiles();
 		if (direction_utilized) DirectionAggregate.aggregateDirectionCSV();
 		if (pause_utilized) PauseAggregate.aggregatePauseCSV();
+		if (time_utilized) TimeAggregate.aggregateTimeCSV();
 		UserAggregate.aggregateUserComparisonCSV();
 	}
     

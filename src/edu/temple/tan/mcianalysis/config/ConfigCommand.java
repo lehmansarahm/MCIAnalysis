@@ -35,7 +35,8 @@ public class ConfigCommand {
 			} else if (i == Constants.CONFIG_FILE_COLUMN_ORDER.TASK.ordinal()) {
 				this.taskName = parsedInput;
 			} else if (i == Constants.CONFIG_FILE_COLUMN_ORDER.ACCEL_PROCESSING.ordinal()) {
-				this.accelProcess = Integer.parseInt(parsedInput);
+				this.accelProcess = 
+					(parsedInput.equalsIgnoreCase("yes") || parsedInput.equalsIgnoreCase("true")) ? 1 : 0;
 			} else if (i >= Constants.CONFIG_FILE_COLUMN_ORDER.ANALYSES.ordinal()) {
 				this.analysisOps.add(new AnalysisCommand(parsedInput));
 			}
