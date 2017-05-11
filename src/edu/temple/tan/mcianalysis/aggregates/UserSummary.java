@@ -30,6 +30,25 @@ public class UserSummary {
 	
 	/**
 	 * 
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public LinkedList<String> getFirstHeaderLine() {
+    	return (new LinkedList(Arrays.asList("", "", "", "", "")));
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public LinkedList<String> getSecondHeaderLine() {
+    	return (new LinkedList(Arrays.asList("User Name:", "Total Trial Time (s)", 
+				"Total Pause Count", "Distinct Pause Count", "Total Time Paused (s)")));
+	}
+	
+	/**
+	 * 
 	 * @param analysis
 	 * @param summaryLine
 	 */
@@ -85,11 +104,10 @@ public class UserSummary {
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public List<String[]> toOutputArray() {
-    	List<String> headersLine1 = new LinkedList(Arrays.asList("", "", "", "", ""));
-    	List<String> headersLine2 = new LinkedList(Arrays.asList("User Name:", "Total Trial Time (s)", 
-    			"Total Pause Count", "Distinct Pause Count", "Total Time Paused (s)"));
-		List<String> subtaskOutput = new LinkedList(Arrays.asList(userName)); // , "", "", "", ""));
+	public List<LinkedList<String>> toOutputList() {
+		LinkedList<String> headersLine1 = getFirstHeaderLine();
+		LinkedList<String> headersLine2 = getSecondHeaderLine();
+		LinkedList<String> subtaskOutput = new LinkedList();
 		
 	    Iterator<Entry<String, SubtaskResult>> it = subtasks.entrySet().iterator();
 	    while (it.hasNext()) {
@@ -125,18 +143,19 @@ public class UserSummary {
 	        // avoid concurrent modification
 	        it.remove();
 	    }
-
+	    
 	    // write the totals
-	    subtaskOutput.add(1, Double.toString(totalTrialTimeSec));
-	    subtaskOutput.add(2, Integer.toString(totalPauseCount));
-	    subtaskOutput.add(3, Integer.toString(distinctPauseCount));
-	    subtaskOutput.add(4, Double.toString(totalPauseTimeSec));
+	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.USER_NAME.ordinal(), userName);
+	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.TOTAL_TRIAL_TIME.ordinal(), Double.toString(totalTrialTimeSec));
+	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.TOTAL_PAUSE_COUNT.ordinal(), Integer.toString(totalPauseCount));
+	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.DISTINCT_PAUSE_COUNT.ordinal(), Integer.toString(distinctPauseCount));
+	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.TOTAL_PAUSE_TIME.ordinal(), Double.toString(totalPauseTimeSec));
 	    
 	    // stitch it all together
-	    List<String[]> finalOutput = new ArrayList<>();
-	    finalOutput.add((String[]) headersLine1.toArray(new String[headersLine1.size()]));
-	    finalOutput.add((String[]) headersLine2.toArray(new String[headersLine2.size()]));
-	    finalOutput.add((String[]) subtaskOutput.toArray(new String[subtaskOutput.size()]));
+	    List<LinkedList<String>> finalOutput = new ArrayList<>();
+	    finalOutput.add(headersLine1);
+	    finalOutput.add(headersLine2);
+	    finalOutput.add(subtaskOutput);
 		return finalOutput;
 	}
 	

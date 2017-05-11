@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,11 +23,13 @@ public class UserAggregate {
 	 */
     public static void aggregateUserResultsCSV() {
         try {
-        	File finalDir = new File("." + Constants.FOLDER_NAME_FINAL);
-        	File[] analysisDirs = finalDir.listFiles();
+        	List<LinkedList<String>> output = new ArrayList<>();
+        	List<String> userNames = new ArrayList<>();
+        	LinkedList<String> taskNames = new LinkedList<>();
         	
         	// iterate through once to find all unique user names
-        	List<String> userNames = new ArrayList<>();
+        	File finalDir = new File("." + Constants.FOLDER_NAME_FINAL);
+        	File[] analysisDirs = finalDir.listFiles();
         	for (File analysisDir : analysisDirs) {
         		for (File userDir : analysisDir.listFiles()) {
         			String userName = userDir.getName();
@@ -35,6 +38,7 @@ public class UserAggregate {
         	}
         	
         	// iterate through again to perform first level aggregation for each user
+        	boolean firstUserProcessed = false;
         	for (String userName : userNames) {
         		UserSummary summary = new UserSummary(userName);
             	for (File analysisDir : analysisDirs) {
@@ -42,9 +46,9 @@ public class UserAggregate {
             		for (File userDir : analysisDir.listFiles()) {
             			if (userDir.getName().equals(userName)) {
                 			String summaryFilePath = null;
-                			for (File output : userDir.listFiles()) {
-                				if (Constants.AGGREGATE_FILES.contains(output.getName())) {
-                					summaryFilePath = output.getPath();
+                			for (File outputFile : userDir.listFiles()) {
+                				if (Constants.AGGREGATE_FILES.contains(outputFile.getName())) {
+                					summaryFilePath = outputFile.getPath();
                 					break;
                 				}
                 			}
@@ -63,31 +67,106 @@ public class UserAggregate {
             		}
             	}
             	
-                String outputFilePath = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_INTERMEDIATE 
+            	// stitch it all together
+            	List<LinkedList<String>> summaryOutput = summary.toOutputList();
+            	LinkedList<String> summaryTaskNames = summaryOutput.get(0);
+            	LinkedList<String> summaryMetricNames = summaryOutput.get(1);
+            	
+        		int firstSubtaskIndex = Constants.USER_AGGREGATE_COLUMN_ORDER.values().length;
+        		int subtaskHeaders = Constants.USER_AGGREGATE_SUBTASK_COLUMN_ORDER.values().length;
+        		
+            	if (!firstUserProcessed) {
+            		output.addAll(summaryOutput);
+            		firstUserProcessed = !firstUserProcessed;
+            		for (int i = firstSubtaskIndex; i < summaryTaskNames.size(); i += subtaskHeaders) {
+        				taskNames.add(summaryTaskNames.get(i));
+            		}
+            	} else {
+            		// add a new output line and write the high level details
+            		LinkedList<String> newSummaryOutput = new LinkedList<>();
+            		LinkedList<String> summarySubtaskOutput = summaryOutput.get(2);
+
+            		int taskIndex = Constants.USER_AGGREGATE_COLUMN_ORDER.values().length;
+            		for (int i = 0; i < taskIndex; i++) {
+            			newSummaryOutput.add(summarySubtaskOutput.get(i));
+            		}
+            		
+            		// parse the subtasks
+            		LinkedList<String> matchedTasks = new LinkedList<>();
+            		for (int i = 0; i < taskNames.size(); i++) {
+            			String taskName = taskNames.get(i);
+            			boolean isMatchingTask = summaryTaskNames.contains(taskName);
+        				for (int j = 0; j < subtaskHeaders; j++) {
+                			if (isMatchingTask) {
+                				int newIndex = ((i * subtaskHeaders) + firstSubtaskIndex);
+                				int indexLimit = (newIndex + subtaskHeaders);
+                        		for (int k = newIndex; k < indexLimit; k++) {
+                    				newSummaryOutput.set(k, "100");
+                        		}
+                				matchedTasks.add(taskName);
+                			} else newSummaryOutput.add("-1");
+        				}
+            		}
+            		
+            		// print the remaining subtasks
+            		for (int i = firstSubtaskIndex; i < summaryTaskNames.size(); i += subtaskHeaders) {
+            			String taskName = summaryTaskNames.get(i);
+            			if (!taskNames.contains(taskName)) {
+            				taskNames.add(summaryTaskNames.get(i));
+            				for (int j = i; j < (i + subtaskHeaders); j++) {
+            					// print the new header values
+            					LinkedList<String> firstHeaderLine = output.get(0);
+            					firstHeaderLine.addLast(summaryTaskNames.get(j));
+            					LinkedList<String> secondHeaderLine = output.get(1);
+            					secondHeaderLine.addLast(summaryMetricNames.get(j));
+            					
+            					// print -1 for all previous and actual output for current
+            					for (int k = 2; k < output.size(); k++) {
+            						output.get(k).addLast("-1");
+            					}
+            					newSummaryOutput.addLast(summarySubtaskOutput.get(j));
+            				}
+            			}
+            		}
+            		
+            		// add the output line to the main output list
+            		output.add(newSummaryOutput);
+            	}
+            	
+            	// print the results
+                /*String outputFilePath = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_INTERMEDIATE 
                 		+ "/" + userName + "_" + Constants.AGGREGATE_FILE_USERS);
                 CSVWriter writer = new CSVWriter(new FileWriter(outputFilePath));
                 writer.writeAll(summary.toOutputArray());
-                writer.close();
+                writer.close();*/
         	}
-
-        	// finally, iterate through intermediate files and stitch them all together
-        	File intermDir = new File("." + Constants.FOLDER_NAME_INTERMEDIATE);
-			for (File intermFile : intermDir.listFiles()) {
-				if (intermFile.getName().contains(Constants.AGGREGATE_FILE_USERS)) {
-					// do the thing
-				}
-			}
         	
-            /*String path_to_csv = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_FINAL 
+            String path_to_csv = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_FINAL 
             		+ "/" + Constants.AGGREGATE_FILE_USERS);
             CSVWriter writer = new CSVWriter(new FileWriter(path_to_csv));
-            writer.writeAll(generateOutputArrays(new ArrayList<UserSummary>(summaries.values())));
-            writer.close();*/
+            writer.writeAll(generateOutputArray(output));
+            writer.close();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    /**
+     * 
+     * @param list
+     * @return
+     */
+    private static List<String[]> generateOutputArray(List<LinkedList<String>> list) {
+    	List<String[]> output = new ArrayList<>();
+    	
+    	for (LinkedList<String> linkedList : list) {
+    		String[] array = linkedList.toArray(new String[linkedList.size()]);
+    		output.add(array);
+    	}
+    	
+    	return output;
     }
     
 }

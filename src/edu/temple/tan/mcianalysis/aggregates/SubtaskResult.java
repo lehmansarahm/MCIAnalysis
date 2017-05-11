@@ -20,7 +20,7 @@ public class SubtaskResult {
 	 * @param subtaskName
 	 */
 	public SubtaskResult(String subtaskName) {
-		this.subtaskName = subtaskName;
+		this.subtaskName = (subtaskName.equals("") ? "[blank]" : subtaskName);
 	}
 	
 	/**
