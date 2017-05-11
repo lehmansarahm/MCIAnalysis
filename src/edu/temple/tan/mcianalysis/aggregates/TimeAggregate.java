@@ -2,6 +2,9 @@ package edu.temple.tan.mcianalysis.aggregates;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.utils.Constants;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -20,7 +23,7 @@ public class TimeAggregate {
 	 */
     public static void aggregateTimeCSV() throws IOException {
         String absolute_path = new File("").getAbsolutePath();
-        File timeFolder = new File(absolute_path.concat("/Final/TaskTime"));
+        File timeFolder = new File(absolute_path.concat(Constants.FOLDER_NAME_FINAL + Constants.FOLDER_NAME_TASK_TIME));
         if (timeFolder.exists()) aggregateTimeDirectory(timeFolder);
     }
     
@@ -39,7 +42,7 @@ public class TimeAggregate {
                 File[] innerFiles = listOfFiles[i].listFiles();
                 String total_write_line[] = new String[2];
                 String writer_path = listOfFiles[i].getAbsolutePath();
-                writer_path = writer_path.concat("/TaskTimes.csv");
+                writer_path = writer_path.concat("/" + Constants.AGGREGATE_FILE_TASK_TIME);
                 CSVWriter writer = new CSVWriter(new FileWriter(writer_path));
 
                 total_write_line[0] = "Task:";
@@ -49,7 +52,7 @@ public class TimeAggregate {
 
                 //loop through the inner directory
                 for (int j = 0; j < innerFiles.length; j++) {
-                    if (!innerFiles[j].getName().equals("TaskTimes.csv")) {
+                    if (!innerFiles[j].getName().equals(Constants.AGGREGATE_FILE_TASK_TIME)) {
                         String task_name = "";
                         String[] name_components = innerFiles[j].getName().split("_");
                         if (name_components.length >= 3) {

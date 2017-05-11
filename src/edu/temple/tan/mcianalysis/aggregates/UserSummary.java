@@ -11,15 +11,19 @@ import java.util.logging.Logger;
 
 public class UserSummary {
 
-	private String analysisName;
+	private String userName;
+	private double totalTrialTime;
+	private int totalPauseCount;
+	private int indivPauseCount;
+	private double totalPauseTime;
 	private Map<String, SubtaskResult> subtasks = new HashMap<String, SubtaskResult>();
 	
 	/**
 	 * 
-	 * @param analysisName
+	 * @param userName
 	 */
-	public UserSummary(String analysisName) {
-		this.analysisName = analysisName;
+	public UserSummary(String userName) {
+		this.userName = userName;
 	}
 	
 	/**
@@ -50,7 +54,7 @@ public class UserSummary {
 	public List<String[]> toOutputArray() {
 		List<String[]> output = new ArrayList<>();
 		
-		output.add(new String[] {"New Analysis Summary:", analysisName});
+		//output.add(new String[] {"New Analysis Summary:", analysisName});
 		boolean headersPrinted = false;
 		
 	    Iterator<Entry<String, SubtaskResult>> it = subtasks.entrySet().iterator();

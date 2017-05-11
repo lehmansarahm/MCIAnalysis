@@ -9,6 +9,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
+import edu.temple.tan.mcianalysis.utils.Constants;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -69,7 +70,6 @@ public class Direction implements Analysis {
         path_to_csv = initialFileSetup(file_path, user_id);
 
         String nextReadLine[];
-        String nextWriteLine[];
         int axis1;
         int axis2;
 
@@ -78,7 +78,7 @@ public class Direction implements Analysis {
         boolean first_line_read = false;
 
         //variables to record the timing from each row
-        SimpleDateFormat date_format = new SimpleDateFormat("HH:mm:ss");
+        SimpleDateFormat date_format = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT);
         Date start_time = null;
 
         CSVWriter direction_csv_writer;
@@ -97,7 +97,7 @@ public class Direction implements Analysis {
         if (acceleration_change_threshold != null) {
             maximum_change_threshold = Double.parseDouble(acceleration_change_threshold);
         } else {
-            try(FileWriter fw = new FileWriter("Errors.txt", true);
+            try(FileWriter fw = new FileWriter(Constants.ERROR_LOG, true);
 			    BufferedWriter bw = new BufferedWriter(fw);
 			    PrintWriter out = new PrintWriter(bw))
 			{
@@ -114,7 +114,7 @@ public class Direction implements Analysis {
         if (axes_to_analyze != null) {
             axes = Integer.parseInt(axes_to_analyze);
         } else {
-            try(FileWriter fw = new FileWriter("Errors.txt", true);
+            try(FileWriter fw = new FileWriter(Constants.ERROR_LOG, true);
 			    BufferedWriter bw = new BufferedWriter(fw);
 			    PrintWriter out = new PrintWriter(bw))
 			{
@@ -242,7 +242,6 @@ public class Direction implements Analysis {
 	  double current_y_acceleration, double change_y_acceleration, String file_path) throws IOException {
         CSVWriter direction_csv_writer = null;
         List<String[]> read_all = new ArrayList<String[]>();
-        List<String[]> write_all = new ArrayList<String[]>();
         String total_write_line[] = new String[6];
         String next_write_line[] = new String[7];
         int number_of_direction_changes = 0;
@@ -358,15 +357,15 @@ public class Direction implements Analysis {
         String[] path_components = file_path.split("/");
         String desired_filename = path_components[path_components.length - 1];
         String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat("/Final");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_FINAL);
         new File(absolute_path).mkdirs();
-        absolute_path = absolute_path.concat("/Direction");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_DIRECTION);
         new File(absolute_path).mkdirs();
 
         absolute_path = absolute_path.concat("/".concat(user_id));
         new File(absolute_path).mkdirs();
 
-        absolute_path = absolute_path.concat("/Direction_".concat(desired_filename));
+        absolute_path = absolute_path.concat((Constants.FOLDER_NAME_DIRECTION + "_").concat(desired_filename));
 
         return absolute_path;
     }

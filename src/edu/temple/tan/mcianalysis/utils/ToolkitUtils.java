@@ -42,7 +42,7 @@ public class ToolkitUtils {
         String finalFilename = pathComponents[pathComponents.length - 1];
         String absolutePath = new File("").getAbsolutePath();
         
-        absolutePath = absolutePath.concat(Constants.FINAL_OUTPUT_FOLDER_NAME);
+        absolutePath = absolutePath.concat(Constants.FOLDER_NAME_FINAL);
         new File(absolutePath).mkdirs();
         
         absolutePath = absolutePath.concat("/" + analysisName);

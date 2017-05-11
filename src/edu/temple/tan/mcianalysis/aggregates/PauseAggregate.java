@@ -2,6 +2,9 @@ package edu.temple.tan.mcianalysis.aggregates;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.utils.Constants;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -21,13 +24,13 @@ public class PauseAggregate {
     public static void aggregatePauseCSV() throws IOException {
         String absolute_path = new File("").getAbsolutePath();
         
-        File pauseFolder = new File(absolute_path.concat("/Final/Pause"));
+        File pauseFolder = new File(absolute_path.concat(Constants.FOLDER_NAME_FINAL + Constants.FOLDER_NAME_PAUSE));
         if (pauseFolder.exists()) aggregatePauseDirectory(pauseFolder, true);
         
-        pauseFolder = new File(absolute_path.concat("/Final/PauseCount"));
+        pauseFolder = new File(absolute_path.concat(Constants.FOLDER_NAME_FINAL + Constants.FOLDER_NAME_PAUSE_COUNT));
         if (pauseFolder.exists()) aggregatePauseDirectory(pauseFolder, true);
         
-        pauseFolder = new File(absolute_path.concat("/Final/PauseDuration"));
+        pauseFolder = new File(absolute_path.concat(Constants.FOLDER_NAME_FINAL + Constants.FOLDER_NAME_PAUSE_DURATION));
         if (pauseFolder.exists()) aggregatePauseDirectory(pauseFolder, false);
     }
     
@@ -38,15 +41,19 @@ public class PauseAggregate {
      */
     public static void aggregatePauseDirectory(File folder, boolean isCount) throws IOException {
         File[] listOfFiles = folder.listFiles();
-
+        String aggregateFileName = (isCount 
+        		? Constants.AGGREGATE_FILE_PAUSE_COUNT 
+				: Constants.AGGREGATE_FILE_PAUSE_DURATION);
+        
         //loop through the directories found within
         for (int i = 0; i < listOfFiles.length; i++) {
             //if the file is a directory we want to go into it and aggregate the direction changes
             if (listOfFiles[i].isDirectory()) {
                 File[] innerFiles = listOfFiles[i].listFiles();
                 String total_write_line[] = new String[4];
+                
                 String writer_path = listOfFiles[i].getAbsolutePath();
-                writer_path = writer_path.concat("/TaskPause" + (isCount ? "Count" : "Duration") + ".csv");
+                writer_path = writer_path.concat("/" + aggregateFileName);
                 CSVWriter writer = new CSVWriter(new FileWriter(writer_path));
 
                 total_write_line[0] = "Task:";
@@ -58,7 +65,7 @@ public class PauseAggregate {
 
                 //loop through the inner directory
                 for (int j = 0; j < innerFiles.length; j++) {
-                    if (!innerFiles[j].getName().equals("TaskPauses.csv")) {
+                    if (!innerFiles[j].getName().equals(aggregateFileName)) {
                         String[] name_components = innerFiles[j].getName().split("_");
                         String task_name = "";
 

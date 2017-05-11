@@ -139,7 +139,7 @@ public class MCIAnalysis {
 		if (direction_utilized) DirectionAggregate.aggregateDirectionCSV();
 		if (pause_utilized) PauseAggregate.aggregatePauseCSV();
 		if (time_utilized) TimeAggregate.aggregateTimeCSV();
-		UserAggregate.aggregateUserComparisonCSV();
+		UserAggregate.aggregateUserResultsCSV();
 	}
     
     /**

@@ -7,12 +7,14 @@ package edu.temple.tan.mcianalysis.analyses;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.utils.Constants;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,10 +23,6 @@ import java.util.logging.Logger;
  * @author Matt
  */
 public class Acceleration implements Analysis {
-
-    public void Acceleration() {
-
-    }
 
     //-------------------------------------------------------
     // Implementing the Analysis interface to allow the
@@ -53,13 +51,18 @@ public class Acceleration implements Analysis {
         String desired_filename = path_components[path_components.length - 1];
         desired_filename = desired_filename.substring(0, desired_filename.length() - 4);
         String path_to_csv = initialFileSetup(file_path, user_id);
-        String acceleration_file_path = path_to_csv.concat("/Acceleration");
-        String starting_acceleration_file_path = path_to_csv.concat("/StartingAcceleration");
-        starting_acceleration_file_path = starting_acceleration_file_path.concat("/".concat(desired_filename.concat("_StartingAcceleration.csv")));
+        String accelFilepath = path_to_csv.concat(Constants.FOLDER_NAME_ACCELERATION);
+        String startingAccelFilepath = path_to_csv.concat(Constants.FOLDER_NAME_STARTING_ACCELERATION);
+        startingAccelFilepath = 
+        		startingAccelFilepath.concat("/".concat(desired_filename.concat("_" 
+        				+ Constants.ANALYSIS_STARTING_ACCELERATION + ".csv")));
 
-        acceleration_file_path = acceleration_file_path.concat("/".concat(desired_filename.concat("_Acceleration.csv")));
+        accelFilepath = 
+        		accelFilepath.concat("/".concat(desired_filename.concat("_" 
+        				+ Constants.ANALYSIS_ACCELERATION + ".csv")));
 
-        try (CSVWriter activity_csv_writer = new CSVWriter(new FileWriter(acceleration_file_path)); CSVWriter starting_acceleration = new CSVWriter(new FileWriter(starting_acceleration_file_path))) {
+        try (CSVWriter activity_csv_writer = new CSVWriter(new FileWriter(accelFilepath)); 
+        		CSVWriter starting_acceleration = new CSVWriter(new FileWriter(startingAccelFilepath))) {
 
             String nextReadLine[];
             String[] nextWriteLine = new String[5];
@@ -102,16 +105,16 @@ public class Acceleration implements Analysis {
     private String initialFileSetup(String file_path, String user_id) {
 
         String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat("/Final");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_FINAL);
         new File(absolute_path).mkdirs();
-        absolute_path = absolute_path.concat("/Acceleration");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_ACCELERATION);
         new File(absolute_path).mkdirs();
 
         absolute_path = absolute_path.concat("/".concat(user_id));
         new File(absolute_path).mkdirs();
 
-        new File(absolute_path.concat("/StartingAcceleration")).mkdirs();
-        new File(absolute_path.concat("/Acceleration")).mkdirs();
+        new File(absolute_path.concat(Constants.FOLDER_NAME_STARTING_ACCELERATION)).mkdirs();
+        new File(absolute_path.concat(Constants.FOLDER_NAME_ACCELERATION)).mkdirs();
 
         return absolute_path;
     }

@@ -9,6 +9,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
+import edu.temple.tan.mcianalysis.utils.Constants;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,7 +34,6 @@ public class TaskTime implements Analysis {
     @Override
     public void beginAnalysis(String file_path, String user_id, String param1, String param2) {
         CSVReader reader;
-        String[] nextLine;
 
         try {
             reader = new CSVReader(new FileReader(file_path), ',', '"', 0);
@@ -51,10 +51,7 @@ public class TaskTime implements Analysis {
 
     private void processTaskTime(CSVReader reader, String user_id,String file_path) throws IOException, ParseException {
         List<String[]> read_all = new ArrayList<String[]>();
-        String path_to_directory = new File("").getAbsolutePath();
-        
-        String activity_to_process = new String();
-        SimpleDateFormat date_format = new SimpleDateFormat("HH:mm:ss");
+        SimpleDateFormat date_format = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT);
         Date start_time = null;
         Date end_time;
         long duration;
@@ -173,9 +170,9 @@ public class TaskTime implements Analysis {
         String[] path_components = file_path.split("/");
         String desired_filename = path_components[path_components.length - 1];
         String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat("/Final");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_FINAL);
         new File(absolute_path).mkdirs();
-        absolute_path = absolute_path.concat("/TaskTime");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_TASK_TIME);
         new File(absolute_path).mkdirs();
         
         absolute_path = absolute_path.concat("/"+user_id);

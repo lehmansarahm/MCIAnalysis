@@ -2,6 +2,9 @@ package edu.temple.tan.mcianalysis.aggregates;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.utils.Constants;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -17,11 +20,11 @@ public class UserAggregate {
 	/**
 	 * 
 	 */
-    public static void aggregateUserComparisonCSV() {
+    public static void aggregateUserResultsCSV() {
         try {
         	List<UserSummary> summaries = new ArrayList<>();
         	List<String> userNames = new ArrayList<>();
-        	File finalDir = new File("./Final");
+        	File finalDir = new File("." + Constants.FOLDER_NAME_FINAL);
         	
         	File[] analysisDirs = finalDir.listFiles();
         	for (File analysisDir : analysisDirs) {
@@ -61,7 +64,8 @@ public class UserAggregate {
     		 * ----------------------------------------------------------------------
     		 */
     		
-            String path_to_csv = new File("").getAbsolutePath().concat("/Final/UserSummary.csv");
+            String path_to_csv = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_FINAL 
+            		+ "/" + Constants.AGGREGATE_FILE_USERS);
             CSVWriter writer = new CSVWriter(new FileWriter(path_to_csv));
             writer.writeAll(generateOutputArrays(summaries));
             writer.close();

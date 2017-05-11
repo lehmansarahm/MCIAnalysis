@@ -7,6 +7,9 @@ package edu.temple.tan.mcianalysis.aggregates;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.utils.Constants;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -23,7 +26,7 @@ public class DirectionAggregate {
 
     public static void aggregateDirectionCSV() throws FileNotFoundException, IOException {
         String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat("/Final/Direction");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_FINAL + Constants.FOLDER_NAME_DIRECTION);
 
         File directionFolder = new File(absolute_path);
 
@@ -36,7 +39,7 @@ public class DirectionAggregate {
                 File[] innerFiles = listOfFile.listFiles();
                 String total_write_line[] = new String[4];
                 String writer_path = listOfFile.getAbsolutePath();
-                writer_path = writer_path.concat("/TaskDirections.csv");
+                writer_path = writer_path.concat("/" + Constants.AGGREGATE_FILE_DIRECTION);
                 CSVWriter writer = new CSVWriter(new FileWriter(writer_path));
                 total_write_line[0] = "Task:";
                 total_write_line[1] = "Number of Direction Changes:";
@@ -45,7 +48,7 @@ public class DirectionAggregate {
                 writer.writeNext(total_write_line);
                 //loop through the inner directory
                 for (int j = 0; j < innerFiles.length; j++) {
-                    if (!innerFiles[j].getName().equals("TaskDirections.csv")) {
+                    if (!innerFiles[j].getName().equals(Constants.AGGREGATE_FILE_DIRECTION)) {
                         String[] name_components = innerFiles[j].getName().split("_");
                         String task_name = "";
                         if (name_components.length == 3 || name_components.length > 3) {
@@ -57,6 +60,7 @@ public class DirectionAggregate {
 
                         CSVReader reader = new CSVReader(new FileReader(full_file_path), ',', '"', 0);
                         read_all = reader.readAll();
+                        reader.close();
 
                         total_write_line[0] = task_name;
                         

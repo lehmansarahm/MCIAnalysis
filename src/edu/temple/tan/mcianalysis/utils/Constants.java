@@ -4,9 +4,32 @@ public class Constants {
 	
     public static final double SAMPLING_RATE = 34.4827586207;	// approx 29 times per second
     public static final String ANALYSIS_NAMESPACE = "edu.temple.tan.mcianalysis.analyses.";
+    public static final String SIMPLE_TIME_FORMAT = "HH:mm:ss";
+    public static final String ERROR_LOG = "Errors.txt";
     
-    public static final String FINAL_OUTPUT_FOLDER_NAME = "/Final";
-    public static final String INTERMEDIATE_FOLDER_NAME = "/Intermediate";
+    public static final String ANALYSIS_ACCELERATION = "Acceleration";
+    public static final String ANALYSIS_DIRECTION = "Direction";
+    public static final String ANALYSIS_PAUSE = "Pause";
+    public static final String ANALYSIS_PAUSE_COUNT = "PauseCount";
+    public static final String ANALYSIS_PAUSE_DURATION = "PauseDuration";
+    public static final String ANALYSIS_STARTING_ACCELERATION = "StartingAcceleration";
+    public static final String ANALYSIS_TASK_TIME = "TaskTime";
+
+    public static final String FOLDER_NAME_ACCELERATION = ("/" + ANALYSIS_ACCELERATION);
+    public static final String FOLDER_NAME_DIRECTION = ("/" + ANALYSIS_DIRECTION);
+    public static final String FOLDER_NAME_FINAL = "/Final";
+    public static final String FOLDER_NAME_INTERMEDIATE = "/Intermediate";
+    public static final String FOLDER_NAME_PAUSE = ("/" + ANALYSIS_PAUSE);
+    public static final String FOLDER_NAME_PAUSE_COUNT = ("/" + ANALYSIS_PAUSE_COUNT);
+    public static final String FOLDER_NAME_PAUSE_DURATION = ("/" + ANALYSIS_PAUSE_DURATION);
+    public static final String FOLDER_NAME_STARTING_ACCELERATION = ("/" + ANALYSIS_STARTING_ACCELERATION);
+    public static final String FOLDER_NAME_TASK_TIME = ("/" + ANALYSIS_TASK_TIME);
+
+    public static final String AGGREGATE_FILE_DIRECTION = "TaskDirections.csv";
+    public static final String AGGREGATE_FILE_PAUSE_COUNT = "TaskPauseCount.csv";
+    public static final String AGGREGATE_FILE_PAUSE_DURATION = "TaskPauseDuration.csv";
+    public static final String AGGREGATE_FILE_TASK_TIME = "TaskTimes.csv";
+    public static final String AGGREGATE_FILE_USERS = "UserSummary.csv";
     
     public static enum CONFIG_FILE_COLUMN_ORDER {
     	USERNAME,

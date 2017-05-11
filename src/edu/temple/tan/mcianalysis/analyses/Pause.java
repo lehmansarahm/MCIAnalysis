@@ -9,6 +9,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
+import edu.temple.tan.mcianalysis.utils.Constants;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -22,7 +23,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,21 +57,18 @@ public class Pause implements Analysis {
     private void createPauseAnalysisCSV(String file_path, CSVReader reader, String user_id, String min_acceleration, String pause_window) throws IOException, ParseException {
         String path_to_csv;
         path_to_csv = initialFileSetup(file_path, user_id);
-        CSVReader pause_reader;
         CSVWriter pause_csv_writer;
         String nextReadLine[];
-        String nextWriteLine[];
         String total_write_line[] = new String[6];
         boolean previous_was_paused = false;
         int consecutive_count = 0;
         boolean pause_recorded = false;
 
         //variables to record the timing from each row and determine duration of pauses
-        SimpleDateFormat date_format = new SimpleDateFormat("HH:mm:ss");
+        SimpleDateFormat date_format = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT);
         Date start_time = null;
         Date end_time;
         double duration;
-        double diffInSeconds;
         final double milliseconds_between_readings = 33.3333333333;
 
         //components of acceleration
@@ -86,7 +83,7 @@ public class Pause implements Analysis {
         if (min_acceleration != null) {
             minimum_magnitude = Double.parseDouble(min_acceleration);
         } else {
-            try(FileWriter fw = new FileWriter("Errors.txt", true);
+            try(FileWriter fw = new FileWriter(Constants.ERROR_LOG, true);
 			    BufferedWriter bw = new BufferedWriter(fw);
 			    PrintWriter out = new PrintWriter(bw))
 			{
@@ -102,7 +99,7 @@ public class Pause implements Analysis {
         if (pause_window != null) {
             minimum_consecutive_pause = Double.parseDouble(pause_window);
         } else {
-            try(FileWriter fw = new FileWriter("Errors.txt", true);
+            try(FileWriter fw = new FileWriter(Constants.ERROR_LOG, true);
 			    BufferedWriter bw = new BufferedWriter(fw);
 			    PrintWriter out = new PrintWriter(bw))
 			{
@@ -206,7 +203,6 @@ public class Pause implements Analysis {
     private void writePauseCSV(Date start_time, Date end_time, double duration, String file_path) throws IOException {
         CSVWriter pause_csv_writer = null;
         List<String[]> read_all = new ArrayList<String[]>();
-        List<String[]> write_all = new ArrayList<String[]>();
         String total_write_line[] = new String[6];
         String next_write_line[] = new String[3];
         double total_time_paused = 0;
@@ -301,15 +297,15 @@ public class Pause implements Analysis {
         String[] path_components = file_path.split("/");
         String desired_filename = path_components[path_components.length - 1];
         String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat("/Final");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_FINAL);
         new File(absolute_path).mkdirs();
-        absolute_path = absolute_path.concat("/Pause");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_PAUSE);
         new File(absolute_path).mkdirs();
 
         absolute_path = absolute_path.concat("/".concat(user_id));
         new File(absolute_path).mkdirs();
 
-        absolute_path = absolute_path.concat("/Pause_".concat(desired_filename));
+        absolute_path = absolute_path.concat((Constants.FOLDER_NAME_PAUSE + "_").concat(desired_filename));
 
         return absolute_path;
     }

@@ -23,8 +23,6 @@ import java.util.logging.Logger;
  * @author Sarah M. Lehman
  */
 public class PauseDuration extends PauseBase implements Analysis {
-	
-	private static final String OUTPUT_DIR_NAME = "PauseDuration";
 
     /**
      * Initializes the analysis according to a given input data file, userID,
@@ -42,7 +40,7 @@ public class PauseDuration extends PauseBase implements Analysis {
     public void beginAnalysis(String filePath, String userID, String pauseThresholdIn, String pauseWindowIn) {
         try {
         	// initialize class variables
-            String csvPath = ToolkitUtils.initializeAnalysisOutputDirs(filePath, userID, OUTPUT_DIR_NAME);
+            String csvPath = ToolkitUtils.initializeAnalysisOutputDirs(filePath, userID, Constants.ANALYSIS_PAUSE_DURATION);
             writer = new CSVWriter(new FileWriter(csvPath));
             totalPauseCount = 0;
             totalPauseDuration = 0.0;
