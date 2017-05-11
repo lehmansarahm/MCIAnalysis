@@ -1,5 +1,8 @@
 package edu.temple.tan.mcianalysis.utils;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Constants {
 	
     public static final double SAMPLING_RATE = 34.4827586207;	// approx 29 times per second
@@ -30,6 +33,13 @@ public class Constants {
     public static final String AGGREGATE_FILE_PAUSE_DURATION = "TaskPauseDuration.csv";
     public static final String AGGREGATE_FILE_TASK_TIME = "TaskTimes.csv";
     public static final String AGGREGATE_FILE_USERS = "UserSummary.csv";
+    
+    public static final List<String> AGGREGATE_FILES = Arrays.asList(
+		AGGREGATE_FILE_DIRECTION, 
+		AGGREGATE_FILE_PAUSE_COUNT, 
+		AGGREGATE_FILE_PAUSE_DURATION, 
+		AGGREGATE_FILE_TASK_TIME
+	);
     
     public static enum CONFIG_FILE_COLUMN_ORDER {
     	USERNAME,
@@ -74,5 +84,17 @@ public class Constants {
 		AVG_PAUSE_TIME_LABEL, 
 		AVG_PAUSE_TIME_VALUE 
 	};
+	
+	public static enum PAUSE_AGGREGATE_COLUMN_ORDER {
+		TASK,
+		NUM_OF_PAUSES,
+		TOTAL_TIME_PAUSED,
+		AVG_PAUSE_DURATION
+	}
+	
+	public static enum TASK_TIME_AGGREGATE_COLUMN_ORDER {
+		TASK,
+		TIME_IN_SEC
+	}
 		
 }

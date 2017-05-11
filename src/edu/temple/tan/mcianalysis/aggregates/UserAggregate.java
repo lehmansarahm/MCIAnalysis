@@ -22,70 +22,72 @@ public class UserAggregate {
 	 */
     public static void aggregateUserResultsCSV() {
         try {
-        	List<UserSummary> summaries = new ArrayList<>();
-        	List<String> userNames = new ArrayList<>();
         	File finalDir = new File("." + Constants.FOLDER_NAME_FINAL);
-        	
         	File[] analysisDirs = finalDir.listFiles();
+        	
+        	// iterate through once to find all unique user names
+        	List<String> userNames = new ArrayList<>();
         	for (File analysisDir : analysisDirs) {
-        		UserSummary summary = new UserSummary(analysisDir.getName());
-        		File[] users = analysisDir.listFiles();
-        		
-        		for (File user : users) {
-        			String userName = user.getName();
-        			userNames.add(userName);
-        			
-        			String summaryFile = null;
-        			File[] outputs = user.listFiles();
-        			for (File output : outputs) {
-        				if (summaryFile == null || output.getPath().length() < summaryFile.length()) {
-        					summaryFile = output.getPath();
-        				}
-        			}
-
-                    CSVReader reader = new CSVReader(new FileReader(summaryFile), ',', '"', 0);
-                    List<String[]> contents = reader.readAll();
-                    String[] headers = null;
-                    for (String[] line : contents) {
-                    	if (headers == null) headers = line;
-                    	else summary.addUserSummary(userName, headers, line);
-                    }
-                    reader.close();
+        		for (File userDir : analysisDir.listFiles()) {
+        			String userName = userDir.getName();
+        			if (!userNames.contains(userName)) userNames.add(userName);
         		}
-        		
-        		summaries.add(summary);
+        	}
+        	
+        	// iterate through again to perform first level aggregation for each user
+        	for (String userName : userNames) {
+        		UserSummary summary = new UserSummary(userName);
+            	for (File analysisDir : analysisDirs) {
+            		String analysisName = analysisDir.getName();
+            		for (File userDir : analysisDir.listFiles()) {
+            			if (userDir.getName().equals(userName)) {
+                			String summaryFilePath = null;
+                			for (File output : userDir.listFiles()) {
+                				if (Constants.AGGREGATE_FILES.contains(output.getName())) {
+                					summaryFilePath = output.getPath();
+                					break;
+                				}
+                			}
+
+                            CSVReader reader = new CSVReader(new FileReader(summaryFilePath), ',', '"', 0);
+                            List<String[]> contents = reader.readAll();
+                            
+                            boolean headersSkipped = false;
+                            for (String[] line : contents) {
+                            	if (headersSkipped) summary.addAggregateSummary(analysisName, line);
+                            	else headersSkipped = !headersSkipped;
+                            }
+
+                            reader.close();
+            			}
+            		}
+            	}
+            	
+                String outputFilePath = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_INTERMEDIATE 
+                		+ "/" + userName + "_" + Constants.AGGREGATE_FILE_USERS);
+                CSVWriter writer = new CSVWriter(new FileWriter(outputFilePath));
+                writer.writeAll(summary.toOutputArray());
+                writer.close();
         	}
 
-    		/*
-    		 * ----------------------------------------------------------------------
-    		 * CURRENT SUCCESS CASE: mult. users, different names/same tasks
-    		 * ----------------------------------------------------------------------
-    		 * CURRENT FAILING CASES: mult. users, same names or different tasks
-    		 * ----------------------------------------------------------------------
-    		 */
-    		
-            String path_to_csv = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_FINAL 
+        	// finally, iterate through intermediate files and stitch them all together
+        	File intermDir = new File("." + Constants.FOLDER_NAME_INTERMEDIATE);
+			for (File intermFile : intermDir.listFiles()) {
+				if (intermFile.getName().contains(Constants.AGGREGATE_FILE_USERS)) {
+					// do the thing
+				}
+			}
+        	
+            /*String path_to_csv = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_FINAL 
             		+ "/" + Constants.AGGREGATE_FILE_USERS);
             CSVWriter writer = new CSVWriter(new FileWriter(path_to_csv));
-            writer.writeAll(generateOutputArrays(summaries));
-            writer.close();
+            writer.writeAll(generateOutputArrays(new ArrayList<UserSummary>(summaries.values())));
+            writer.close();*/
         } catch (FileNotFoundException ex) {
             Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-    
-    /**
-     * 
-     * @param comparisons
-     * @param userNames
-     * @return
-     */
-	private static List<String[]> generateOutputArrays(List<UserSummary> summaries) {
-    	List<String[]> output = new ArrayList<>();
-        for (UserSummary summary : summaries) output.addAll(summary.toOutputArray());
-    	return output;
     }
     
 }

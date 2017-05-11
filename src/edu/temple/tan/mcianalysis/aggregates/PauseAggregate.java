@@ -56,10 +56,10 @@ public class PauseAggregate {
                 writer_path = writer_path.concat("/" + aggregateFileName);
                 CSVWriter writer = new CSVWriter(new FileWriter(writer_path));
 
-                total_write_line[0] = "Task:";
-                total_write_line[1] = "Number of Pauses:";
-                total_write_line[2] = "Total Time Paused:";
-                total_write_line[3] = "Average Pause Duration:";
+                total_write_line[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.TASK.ordinal()] = "Task:";
+                total_write_line[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.NUM_OF_PAUSES.ordinal()] = "Number of Pauses:";
+                total_write_line[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.TOTAL_TIME_PAUSED.ordinal()] = "Total Time Paused:";
+                total_write_line[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.AVG_PAUSE_DURATION.ordinal()] = "Average Pause Duration:";
 
                 writer.writeNext(total_write_line);
 

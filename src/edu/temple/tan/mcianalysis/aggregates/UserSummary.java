@@ -1,21 +1,23 @@
 package edu.temple.tan.mcianalysis.aggregates;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import edu.temple.tan.mcianalysis.utils.Constants;
 
 public class UserSummary {
 
 	private String userName;
-	private double totalTrialTime;
-	private int totalPauseCount;
-	private int indivPauseCount;
-	private double totalPauseTime;
+	private double totalTrialTimeMin = 0.0;
+	private int totalPauseCount = 0;
+	private int indivPauseCount = 0;
+	private double totalPauseTime = 0.0;
 	private Map<String, SubtaskResult> subtasks = new HashMap<String, SubtaskResult>();
 	
 	/**
@@ -28,130 +30,147 @@ public class UserSummary {
 	
 	/**
 	 * 
-	 * @param user
-	 * @param headers
+	 * @param analysis
 	 * @param summaryLine
 	 */
-	public void addUserSummary(String user, String[] headers, String[] summaryLine) {
-		if (headers.length == summaryLine.length) {
-			String[] subtaskComponents = summaryLine[0].split(":");
-			String subtask = subtaskComponents[subtaskComponents.length - 1];
-			for (int i = 1; i < summaryLine.length; i++) {
-				String header = headers[i];
-				String summary = summaryLine[i];
-				
-				if (!subtasks.containsKey(subtask)) subtasks.put(subtask, new SubtaskResult(subtask));
-				subtasks.get(subtask).addResult(header, user, summary);
-			}
-		} else Logger.getLogger(UserSummary.class.getName()).log(Level.SEVERE, null, "Bad summary input");
+	public void addAggregateSummary(String analysis, String[] summaryLine) {
+		String[] subtaskComponents = summaryLine[0].split(":");
+		String taskName = subtaskComponents[subtaskComponents.length - 1];
+		addSubtask(taskName);
+		
+        /*Logger.getLogger(UserSummary.class.getName()).log(Level.INFO, 
+        		"Adding summary line for analysis: " + analysis 
+        		+ ", and subtask: " + taskName + ", and user: " + userName, "");*/
+		
+		SubtaskResult str = subtasks.get(taskName);
+		switch (analysis) {
+		case Constants.ANALYSIS_PAUSE_COUNT:
+			int subtaskPauseCount = 
+				Integer.parseInt(summaryLine[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.NUM_OF_PAUSES.ordinal()]);
+			str.addToTotalPauses(subtaskPauseCount);
+			break;
+		case Constants.ANALYSIS_PAUSE_DURATION:
+			int subtaskIndivPauseCount = 
+				Integer.parseInt(summaryLine[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.NUM_OF_PAUSES.ordinal()]);
+			str.addToIndivPauseCount(subtaskIndivPauseCount);
+			double subtaskTotalPauseTime = 
+				Double.parseDouble(summaryLine[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.TOTAL_TIME_PAUSED.ordinal()]);
+			str.addToTotalPauseTime(subtaskTotalPauseTime);
+			break;
+		case Constants.ANALYSIS_TASK_TIME:
+			double subtaskTimeSec = 
+				Double.parseDouble(summaryLine[Constants.TASK_TIME_AGGREGATE_COLUMN_ORDER.TIME_IN_SEC.ordinal()]);
+			str.setCompletionTime(subtaskTimeSec);
+			break;
+		default:
+			// do nothing
+			break;
+		}
+		
+		subtasks.put(taskName, str);
+	}
+
+	/**
+	 * 
+	 * @param subtask
+	 */
+	public void addSubtask(String subtask) {
+		if (!subtasks.containsKey(subtask)) {
+			subtasks.put(subtask, new SubtaskResult(subtask));
+		}
 	}
 	
 	/**
 	 * 
 	 * @return
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public List<String[]> toOutputArray() {
-		List<String[]> output = new ArrayList<>();
+    	List<String> headersLine1 = new LinkedList(Arrays.asList("", "", "", "", ""));
+    	List<String> headersLine2 = new LinkedList(Arrays.asList("User Name:", "Total Trial Time", 
+    			"Total Pause Count", "Indiv. Pause Count", "Total Time Paused"));
+		List<String> subtaskOutput = new LinkedList(Arrays.asList(userName)); // , "", "", "", ""));
 		
-		//output.add(new String[] {"New Analysis Summary:", analysisName});
-		boolean headersPrinted = false;
-		
+		double totalTrialTimeSec = 0.0;		
 	    Iterator<Entry<String, SubtaskResult>> it = subtasks.entrySet().iterator();
 	    while (it.hasNext()) {
 	        Map.Entry pair = (Map.Entry)it.next();
-	        SubtaskResult subtaskResult = (SubtaskResult) pair.getValue();
+	        SubtaskResult str = (SubtaskResult) pair.getValue();
+	        String subtaskName = str.getSubtaskName();
+
+	        // subtask column 1
+	        headersLine1.add(subtaskName);
+	        headersLine2.add("Completion Time");
+	        subtaskOutput.add(Double.toString(str.getCompletionTime()));
+	        totalTrialTimeSec += str.getCompletionTime();
+
+	        // subtask column 2
+	        headersLine1.add(subtaskName);
+	        headersLine2.add("Total Pause Count");
+	        subtaskOutput.add(Integer.toString(str.getTotalPauseCount()));
+	        totalPauseCount += str.getTotalPauseCount();
+
+	        // subtask column 3
+	        headersLine1.add(subtaskName);
+	        headersLine2.add("Indiv. Pause Count");
+	        subtaskOutput.add(Integer.toString(str.getIndivPauseCount()));
+	        indivPauseCount += str.getIndivPauseCount();
+
+	        // subtask column 4
+	        headersLine1.add(subtaskName);
+	        headersLine2.add("Total Time Paused");
+	        subtaskOutput.add(Double.toString(str.getTotalPauseTime()));
+	        totalPauseTime += str.getTotalPauseTime();
 	        
-	        if (!headersPrinted) {
-	        	output.add(subtaskResult.getResultHeaders());
-	        	headersPrinted = !headersPrinted;
-	        }
-	        
-	        String[] resultValues = subtaskResult.getResultValues();
-	        if (!resultValues[0].isEmpty()) output.add(resultValues);
+	        // avoid concurrent modification
 	        it.remove();
 	    }
 
-		// spacing
-		output.add(new String[2]);
-		output.add(new String[2]);
-		
-		return output;
+	    // write the totals
+	    totalTrialTimeMin = (totalTrialTimeSec / 60.0);
+	    subtaskOutput.add(1, Double.toString(totalTrialTimeMin));
+	    subtaskOutput.add(2, Integer.toString(totalPauseCount));
+	    subtaskOutput.add(3, Integer.toString(indivPauseCount));
+	    subtaskOutput.add(4, Double.toString(totalPauseTime));
+	    
+	    // stitch it all together
+	    List<String[]> finalOutput = new ArrayList<>();
+	    finalOutput.add((String[]) headersLine1.toArray(new String[headersLine1.size()]));
+	    finalOutput.add((String[]) headersLine2.toArray(new String[headersLine2.size()]));
+	    finalOutput.add((String[]) subtaskOutput.toArray(new String[subtaskOutput.size()]));
+		return finalOutput;
 	}
 	
 	/**
 	 * 
+	 * @return
 	 */
-	class SubtaskResult {
-		
-		private String subtaskName;
-		private Map<String, List<String[]>> results = new HashMap<String, List<String[]>>();
-		
-		/**
-		 * 
-		 * @param subtaskName
-		 */
-		public SubtaskResult(String subtaskName) {
-			this.subtaskName = subtaskName;
-		}
-		
-		/**
-		 * 
-		 * @param resultHeader
-		 * @param user
-		 * @param resultValue
-		 */
-		public void addResult(String resultHeader, String user, String resultValue) {
-			if (!results.containsKey(resultHeader)) results.put(resultHeader, new ArrayList<>());
-			results.get(resultHeader).add(new String[] { user, resultValue });
-		}
-		
-		/**
-		 * 
-		 * @return
-		 */
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public String[] getResultHeaders() {
-			List<String> resultHeaders = new ArrayList<>();
-			resultHeaders.add("Subtask:");
-			
-		    Iterator<Entry<String, List<String[]>>> it = results.entrySet().iterator();
-		    while (it.hasNext()) {
-		        Map.Entry pair = (Map.Entry)it.next();
-		        String metric = (String) pair.getKey();
-		        List<String[]> subtaskResults = (List<String[]>) pair.getValue();
-		        
-		        for (String[] subtaskResult : subtaskResults) {
-		        	resultHeaders.add(metric + " (" + subtaskResult[0] + ")");
-		        }
-		        it.remove();
-		    }
-		    
-		    return (String[]) resultHeaders.toArray(new String[resultHeaders.size()]);
-		}
-		
-		/**
-		 * 
-		 * @return
-		 */
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public String[] getResultValues() {
-			List<String> resultValues = new ArrayList<>();
-			resultValues.add(subtaskName);
-			
-		    Iterator<Entry<String, List<String[]>>> it = results.entrySet().iterator();
-		    while (it.hasNext()) {
-		        Map.Entry pair = (Map.Entry)it.next();
-		        List<String[]> subtaskResults = (List<String[]>) pair.getValue();
-
-		        for (String[] subtaskResult : subtaskResults) {
-		        	resultValues.add(subtaskResult[1]);
-		        }
-		        it.remove();
-		    }
-
-		    return (String[]) resultValues.toArray(new String[resultValues.size()]);
-		}
-		
+	public double getTotalTrialTime() {
+		return totalTrialTimeMin;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public int getTotalPauseCount() {
+		return totalPauseCount;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public int getIndivPauseCount() {
+		return indivPauseCount;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public double getTotalPauseTime() {
+		return totalPauseTime;
+	}
+	
 }
