@@ -12,7 +12,7 @@ public class SubtaskResult {
 	private String subtaskName;
 	private double completionTimeSec = 0.0;
 	private int totalPauseCount = 0;
-	private int indivPauseCount = 0;
+	private int distinctPauseCount = 0;
 	private double totalPauseTime = 0.0;
 	
 	/**
@@ -67,16 +67,16 @@ public class SubtaskResult {
 	 * 
 	 * @param newPauseCount
 	 */
-	public void addToIndivPauseCount(int newPauseCount) {
-		indivPauseCount += newPauseCount;
+	public void addToDistinctPauseCount(int newPauseCount) {
+		distinctPauseCount += newPauseCount;
 	}
 
 	/**
 	 * 
 	 * @return
 	 */
-	public int getIndivPauseCount() {
-		return indivPauseCount;
+	public int getDistinctPauseCount() {
+		return distinctPauseCount;
 	}
 	
 	/**

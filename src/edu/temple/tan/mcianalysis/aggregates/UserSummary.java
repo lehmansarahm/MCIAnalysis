@@ -14,10 +14,10 @@ import edu.temple.tan.mcianalysis.utils.Constants;
 public class UserSummary {
 
 	private String userName;
-	private double totalTrialTimeMin = 0.0;
+	private double totalTrialTimeSec = 0.0;
 	private int totalPauseCount = 0;
-	private int indivPauseCount = 0;
-	private double totalPauseTime = 0.0;
+	private int distinctPauseCount = 0;
+	private double totalPauseTimeSec = 0.0;
 	private Map<String, SubtaskResult> subtasks = new HashMap<String, SubtaskResult>();
 	
 	/**
@@ -52,7 +52,7 @@ public class UserSummary {
 		case Constants.ANALYSIS_PAUSE_DURATION:
 			int subtaskIndivPauseCount = 
 				Integer.parseInt(summaryLine[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.NUM_OF_PAUSES.ordinal()]);
-			str.addToIndivPauseCount(subtaskIndivPauseCount);
+			str.addToDistinctPauseCount(subtaskIndivPauseCount);
 			double subtaskTotalPauseTime = 
 				Double.parseDouble(summaryLine[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.TOTAL_TIME_PAUSED.ordinal()]);
 			str.addToTotalPauseTime(subtaskTotalPauseTime);
@@ -87,11 +87,10 @@ public class UserSummary {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public List<String[]> toOutputArray() {
     	List<String> headersLine1 = new LinkedList(Arrays.asList("", "", "", "", ""));
-    	List<String> headersLine2 = new LinkedList(Arrays.asList("User Name:", "Total Trial Time", 
-    			"Total Pause Count", "Indiv. Pause Count", "Total Time Paused"));
+    	List<String> headersLine2 = new LinkedList(Arrays.asList("User Name:", "Total Trial Time (s)", 
+    			"Total Pause Count", "Distinct Pause Count", "Total Time Paused (s)"));
 		List<String> subtaskOutput = new LinkedList(Arrays.asList(userName)); // , "", "", "", ""));
 		
-		double totalTrialTimeSec = 0.0;		
 	    Iterator<Entry<String, SubtaskResult>> it = subtasks.entrySet().iterator();
 	    while (it.hasNext()) {
 	        Map.Entry pair = (Map.Entry)it.next();
@@ -100,7 +99,7 @@ public class UserSummary {
 
 	        // subtask column 1
 	        headersLine1.add(subtaskName);
-	        headersLine2.add("Completion Time");
+	        headersLine2.add("Completion Time (s)");
 	        subtaskOutput.add(Double.toString(str.getCompletionTime()));
 	        totalTrialTimeSec += str.getCompletionTime();
 
@@ -112,26 +111,26 @@ public class UserSummary {
 
 	        // subtask column 3
 	        headersLine1.add(subtaskName);
-	        headersLine2.add("Indiv. Pause Count");
-	        subtaskOutput.add(Integer.toString(str.getIndivPauseCount()));
-	        indivPauseCount += str.getIndivPauseCount();
+	        headersLine2.add("Distinct Pause Count");
+	        subtaskOutput.add(Integer.toString(str.getDistinctPauseCount()));
+	        distinctPauseCount += str.getDistinctPauseCount();
 
 	        // subtask column 4
 	        headersLine1.add(subtaskName);
-	        headersLine2.add("Total Time Paused");
-	        subtaskOutput.add(Double.toString(str.getTotalPauseTime()));
-	        totalPauseTime += str.getTotalPauseTime();
+	        headersLine2.add("Total Time Paused (s)");
+	        double pauseTimeSec = (str.getTotalPauseTime() / 1000.0);
+	        subtaskOutput.add(Double.toString(pauseTimeSec));
+	        totalPauseTimeSec += pauseTimeSec;
 	        
 	        // avoid concurrent modification
 	        it.remove();
 	    }
 
 	    // write the totals
-	    totalTrialTimeMin = (totalTrialTimeSec / 60.0);
-	    subtaskOutput.add(1, Double.toString(totalTrialTimeMin));
+	    subtaskOutput.add(1, Double.toString(totalTrialTimeSec));
 	    subtaskOutput.add(2, Integer.toString(totalPauseCount));
-	    subtaskOutput.add(3, Integer.toString(indivPauseCount));
-	    subtaskOutput.add(4, Double.toString(totalPauseTime));
+	    subtaskOutput.add(3, Integer.toString(distinctPauseCount));
+	    subtaskOutput.add(4, Double.toString(totalPauseTimeSec));
 	    
 	    // stitch it all together
 	    List<String[]> finalOutput = new ArrayList<>();
@@ -146,7 +145,7 @@ public class UserSummary {
 	 * @return
 	 */
 	public double getTotalTrialTime() {
-		return totalTrialTimeMin;
+		return totalTrialTimeSec;
 	}
 	
 	/**
@@ -161,8 +160,8 @@ public class UserSummary {
 	 * 
 	 * @return
 	 */
-	public int getIndivPauseCount() {
-		return indivPauseCount;
+	public int getDistinctPauseCount() {
+		return distinctPauseCount;
 	}
 	
 	/**
@@ -170,7 +169,7 @@ public class UserSummary {
 	 * @return
 	 */
 	public double getTotalPauseTime() {
-		return totalPauseTime;
+		return totalPauseTimeSec;
 	}
 	
 }
