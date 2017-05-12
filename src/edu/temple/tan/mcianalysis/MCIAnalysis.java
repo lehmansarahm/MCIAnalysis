@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
@@ -64,6 +66,36 @@ public class MCIAnalysis {
         for (ConfigCommand command : commands) {
         	String[] userIDList = command.getUsername().split(",");
             String[] rawFilenameList = command.getSourceFile().split(",");
+            
+            if (rawFilenameList.length == 1) {
+            	List<String> inputFiles = new ArrayList<>();
+            	String inputFolderPath = rawFilenameList[0];
+            	
+            	File inputFolder = new File("." + inputFolderPath);
+            	if (inputFolder.exists() && inputFolder.isDirectory()) {
+	            	for (File inputFile : inputFolder.listFiles()) {
+	            		if (inputFile.getName().endsWith(".csv")) {
+	            			String newInputFilePath = inputFolderPath + "/" + inputFile.getName();
+	            			inputFiles.add(newInputFilePath);
+	            		}
+	            	}
+            	}
+            	
+            	if (userIDList.length == inputFiles.size()) {
+                	rawFilenameList = new String[userIDList.length];
+                	for (int i = 0; i < userIDList.length; i++) {
+                		String userID = userIDList[i];
+                		for (int j = 0; j < inputFiles.size(); j++) {
+                			String inputFilePath = inputFiles.get(j);
+                			if (inputFilePath.toLowerCase().contains(userID.toLowerCase())) {
+                    			//Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
+                    	        //		"New input file path: " + inputFilePath + " for user: " + userID, "");
+                				rawFilenameList[i] = inputFilePath;
+                			}
+                		}
+                	}
+            	}
+            }
             
             // only continue with the analysis if the number of users 
             // provided matches the number of data files
@@ -129,6 +161,8 @@ public class MCIAnalysis {
                     }
                     
                     // Clear out the activity list for this command set, and progress to the next
+                    Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
+                    		"Finished processing input file: " + targetFile + " for user: " + userID, "");
                     csvActivityList.clear();
             	}
             }

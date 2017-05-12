@@ -67,22 +67,17 @@ public class PauseAggregate {
                 for (int j = 0; j < innerFiles.length; j++) {
                     if (!innerFiles[j].getName().equals(aggregateFileName)) {
                         String[] name_components = innerFiles[j].getName().split("_");
-                        String task_name = "";
-
-                        if (name_components.length >= 3) {
-                            task_name = name_components[3];
-                        }
-                        List<String[]> read_all = new ArrayList<String[]>();
-
+                        String task_name = (name_components.length >= 3) ? name_components[3] : "";
+                        
                         String full_file_path = innerFiles[j].getAbsolutePath();
-
                         CSVReader reader = new CSVReader(new FileReader(full_file_path), ',', '"', 0);
-                        read_all = reader.readAll();
+                        List<String[]> read_all = reader.readAll();
+                        
                         int m = 0;
-                        while(!read_all.get(m)[0].equalsIgnoreCase("Configuration File Used:") && m<read_all.size())
-                        {
+                        while(m < read_all.size() && !read_all.get(m)[0].equalsIgnoreCase("Configuration File Used:")) {
                             m++;
                         }
+                        
                         total_write_line[0] = task_name;
                         total_write_line[1] = read_all.get(m-1)[1];
                         total_write_line[2] = read_all.get(m-1)[3];

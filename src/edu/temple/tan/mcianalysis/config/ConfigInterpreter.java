@@ -7,13 +7,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
+import edu.temple.tan.mcianalysis.utils.Constants;
 
 /**
  * Processes the contents of the configuration file 
@@ -31,7 +30,7 @@ public class ConfigInterpreter {
 	 * @return the parsed list of commands
 	 */
     public static List<ConfigCommand> loadNewCommands() {
-    	return loadNewCommands("/configuration.txt");
+    	return loadNewCommands("/" + Constants.CONFIG_FILE);
     }
     
     /**
@@ -83,7 +82,7 @@ public class ConfigInterpreter {
      */
     public static void writeConfigSettingsToOutputFiles() throws FileNotFoundException, IOException {
         String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat("/Final");
+        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_FINAL);
 
         File directionFolder = new File(absolute_path);
         File[] listOfFiles = directionFolder.listFiles();

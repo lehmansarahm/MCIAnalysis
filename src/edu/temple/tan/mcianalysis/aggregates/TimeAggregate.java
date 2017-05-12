@@ -64,7 +64,7 @@ public class TimeAggregate {
                         read_all = reader.readAll();
                         
                         int m = 0;
-                        while(!read_all.get(m)[0].equalsIgnoreCase("Configuration File Used:") && m < read_all.size()) {
+                        while(m < read_all.size() && !read_all.get(m)[0].equalsIgnoreCase("Configuration File Used:")) {
                             m++;
                         }
                         

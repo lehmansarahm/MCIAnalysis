@@ -54,4 +54,14 @@ public class ToolkitUtils {
         absolutePath = absolutePath.concat(("/" + analysisName + "_").concat(finalFilename));
         return absolutePath;
     }
+
+    /**
+     * 
+     * @param s
+     * @return
+     */
+    public static boolean isNumeric(String s) {  
+        return s != null && s.matches("[-+]?\\d*\\.?\\d+");  
+    }
+    
 }
