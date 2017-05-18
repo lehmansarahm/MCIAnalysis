@@ -109,7 +109,7 @@ public class PauseCount extends PauseBase implements Analysis {
 	    			endNo = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
 	    			
 	    			// determine the current duration and add to our running total
-	    			currentDuration = windowCount * Constants.SAMPLING_RATE;
+	    			currentDuration = windowCount * Constants.SAMPLING_PERIOD;
 	    			totalPauseDuration += currentDuration;
 	    			
 	    			// output pause details to file

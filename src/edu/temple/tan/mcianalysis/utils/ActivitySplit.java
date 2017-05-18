@@ -11,7 +11,6 @@ import com.opencsv.CSVWriter;
 import edu.temple.tan.mcianalysis.MCIAnalysis;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -88,7 +87,7 @@ public class ActivitySplit {
         //---------------------------------------------------
         while ((nextLine = csv_file.readNext()) != null) {
 
-            if (nextLine[8].equalsIgnoreCase("start")) {
+            if (nextLine.length > 9 && nextLine[8].equalsIgnoreCase("start")) {
                 activity_started = true;
                 requested_activity = nextLine[9];
                 MCIAnalysis.requested_activities_set.add(requested_activity);
@@ -120,7 +119,7 @@ public class ActivitySplit {
 
             }
 
-            if (nextLine[9].equalsIgnoreCase(requested_activity) && activity_started) {
+            if (nextLine.length > 10 && nextLine[9].equalsIgnoreCase(requested_activity) && activity_started) {
                 activity_csv_writer.writeNext(nextLine);
             } else if (activity_started) {
                 //------------------------------------------
@@ -162,21 +161,22 @@ public class ActivitySplit {
                 activity_csv_writer.writeNext(nextLine);
             }
 
-            if (nextLine[8].equalsIgnoreCase("quit")) {
-                //------------------------------------------
-                // Close current writer and add the file
-                // path to the array of files
-                //------------------------------------------
-                if (activity_csv_writer != null) {
-                    activity_csv_writer.close();
-                    activity_csv_paths.add(full_file_path);
-                }
+            if (nextLine.length > 9 && nextLine[8].equalsIgnoreCase("quit")) {
                 //end the loop
                 break;
             }
 
         }
 
+        //------------------------------------------
+        // Close current writer and add the file
+        // path to the array of files
+        //------------------------------------------
+        if (activity_csv_writer != null) {
+            activity_csv_writer.close();
+            activity_csv_paths.add(full_file_path);
+        }
+        
         return activity_csv_paths;
     }
 }

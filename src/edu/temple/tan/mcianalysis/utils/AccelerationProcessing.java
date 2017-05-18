@@ -11,10 +11,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -37,16 +33,16 @@ public class AccelerationProcessing {
         String[] nextLine;
         boolean first_run_completed = false;
 
-        next_write_line[0] = "Time:";
-        next_write_line[1] = "Reading Number:";
-        next_write_line[2] = "Azimuth:";
-        next_write_line[3] = "Pitch:";
-        next_write_line[4] = "Roll:";
-        next_write_line[5] = "Acceleration X:";
-        next_write_line[6] = "Acceleration Y:";
-        next_write_line[7] = "Acceleration Z:";
-        next_write_line[8] = "Start/End:";
-        next_write_line[9] = "Activity:";
+        next_write_line[0] = Constants.DATA_COLUMN_TIME;
+        next_write_line[1] = Constants.DATA_COLUMN_RECORD_NO;
+        next_write_line[2] = Constants.DATA_COLUMN_AZIMUTH;
+        next_write_line[3] = Constants.DATA_COLUMN_PITCH;
+        next_write_line[4] = Constants.DATA_COLUMN_ROLL;
+        next_write_line[5] = Constants.DATA_COLUMN_ACCEL_X;
+        next_write_line[6] = Constants.DATA_COLUMN_ACCEL_Y;
+        next_write_line[7] = Constants.DATA_COLUMN_ACCEL_Z;
+        next_write_line[8] = Constants.DATA_COLUMN_START_END;
+        next_write_line[9] = Constants.DATA_COLUMN_ACTIVITY;
 
         linear_writer.writeNext(next_write_line);
         linear_writer.flush();
@@ -59,10 +55,11 @@ public class AccelerationProcessing {
                 first_run_completed = true;
             }
             
-            if (!nextLine[2].equalsIgnoreCase("") && !nextLine[3].equalsIgnoreCase("") && !nextLine[4].equalsIgnoreCase(""))
-            writeLinearAcceleration(linear_writer, nextLine);
-            
-            if (nextLine[8].equalsIgnoreCase("quit")) break;
+            if (!nextLine[0].equals(Constants.DATA_COLUMN_TIME)) {
+	            if (nextLine.length > 5 && !nextLine[2].equalsIgnoreCase("") && !nextLine[3].equalsIgnoreCase("") && !nextLine[4].equalsIgnoreCase(""))
+	            	writeLinearAcceleration(linear_writer, nextLine);
+	            if (nextLine.length > 9 && nextLine[8].equalsIgnoreCase("quit")) break;
+            }
         }
         
         linear_writer.close();
@@ -88,8 +85,10 @@ public class AccelerationProcessing {
 	        nextReadLine[6] = String.valueOf(linear_acceleration[1]);
 	        nextReadLine[7] = String.valueOf(linear_acceleration[2]);
 	        
-	        String[] activityNameComponents = nextReadLine[9].split(":");
-	        nextReadLine[9] = activityNameComponents[activityNameComponents.length - 1].replaceAll("[^\\dA-Za-z ]", "");
+	        if (nextReadLine.length >= 10) {
+		        String[] activityNameComponents = nextReadLine[9].split(":");
+		        nextReadLine[9] = activityNameComponents[activityNameComponents.length - 1].replaceAll("[^\\dA-Za-z ]", "");
+	        }
 	
 	        linear_writer.writeNext(nextReadLine);
 	        linear_writer.flush();

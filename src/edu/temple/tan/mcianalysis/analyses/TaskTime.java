@@ -21,7 +21,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -67,7 +66,8 @@ public class TaskTime implements Analysis {
         start_time = date_format.parse(read_all.get(1)[0]);
         end_time = date_format.parse(read_all.get(read_all.size() - 1)[0]);
         duration = end_time.getTime() - start_time.getTime();
-        double diffInSeconds = ((double)duration) / 1000.0;
+        double diffInSeconds = (duration > 0) ? (((double)duration) / 1000.0) 
+        		: (Constants.SAMPLING_PERIOD * (read_all.size() - 1));
 
         //file_path = path_to_directory.concat("/" + user_id +"_"+ read_all.get(1)[9] +"_"+ MCIAnaylsis.run_time +".csv");
 

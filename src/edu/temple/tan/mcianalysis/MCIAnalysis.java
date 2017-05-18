@@ -106,7 +106,7 @@ public class MCIAnalysis {
             		String userID = userIDList[i];
                 	//System.out.println("Parsed userID: " + userID);
 
-            		String rawFilename = rawFilenameList[i];
+            		String rawFilename = getFilename(userID, rawFilenameList);
                     String targetFile = filePath.concat(rawFilename);
                 	//System.out.println("Parsed targetFile: " + targetFile);
                     
@@ -175,6 +175,28 @@ public class MCIAnalysis {
 		if (time_utilized) TimeAggregate.aggregateTimeCSV();
 		if (pause_utilized && time_utilized) UserAggregate.aggregateUserResultsCSV();
 	}
+    
+    /**
+     * 
+     * @param userID
+     * @param rawFilenameList
+     * @return
+     */
+    private static String getFilename(String userID, String[] rawFilenameList) {
+    	String filename = "";
+        //Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
+        //		"Getting input file for user: " + userID, "");
+    	for (int i = 0; i < rawFilenameList.length; i++) {
+    		String rawFilename = rawFilenameList[i].toLowerCase();
+            //Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
+            //		"Comparing file name: " + rawFilename, "");
+    		if (rawFilename.contains(userID.toLowerCase())) {
+    			filename = rawFilenameList[i];
+    			break;
+    		}
+    	}
+    	return filename;
+    }
     
     /**
      * Support method to clean up any remaining artifacts from previous executions 

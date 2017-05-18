@@ -5,12 +5,23 @@ import java.util.List;
 
 public class Constants {
 	
-    public static final double SAMPLING_RATE = 34.4827586207;	// approx 29 times per second
+    public static final double SAMPLING_PERIOD = 34.4827586207;	// milliseconds ... approx 29 times per second
     public static final String ANALYSIS_NAMESPACE = "edu.temple.tan.mcianalysis.analyses.";
     public static final String SIMPLE_TIME_FORMAT = "HH:mm:ss";
     
     public static final String CONFIG_FILE = "configuration.txt";
     public static final String ERROR_LOG = "Errors.txt";
+
+    public static final String DATA_COLUMN_TIME = "Time";
+    public static final String DATA_COLUMN_RECORD_NO = "Record No";
+    public static final String DATA_COLUMN_AZIMUTH = "Azimuth";
+    public static final String DATA_COLUMN_PITCH = "Pitch";
+    public static final String DATA_COLUMN_ROLL = "Roll";
+    public static final String DATA_COLUMN_ACCEL_X = "Accel-X";
+    public static final String DATA_COLUMN_ACCEL_Y = "Accel-Y";
+    public static final String DATA_COLUMN_ACCEL_Z = "Accel-Z";
+    public static final String DATA_COLUMN_START_END = "Start/End";
+    public static final String DATA_COLUMN_ACTIVITY = "Activity";
     
     public static final String ANALYSIS_ACCELERATION = "Acceleration";
     public static final String ANALYSIS_DIRECTION = "Direction";

@@ -131,7 +131,7 @@ public class PauseDuration extends PauseBase implements Analysis {
 			String endNo = lastNo;
 			
 			// determine the current duration and add to our running total
-			Double currentDuration = windowCount * Constants.SAMPLING_RATE;
+			Double currentDuration = windowCount * Constants.SAMPLING_PERIOD;
 			totalPauseDuration += currentDuration;
 			
 			// output pause details to file
