@@ -67,7 +67,7 @@ public class TaskTime implements Analysis {
         start_time = date_format.parse(read_all.get(1)[0]);
         end_time = date_format.parse(read_all.get(read_all.size() - 1)[0]);
         duration = end_time.getTime() - start_time.getTime();
-        double diffInSeconds = TimeUnit.MILLISECONDS.toSeconds(duration);
+        double diffInSeconds = ((double)duration) / 1000.0;
 
         //file_path = path_to_directory.concat("/" + user_id +"_"+ read_all.get(1)[9] +"_"+ MCIAnaylsis.run_time +".csv");
 
@@ -108,7 +108,7 @@ public class TaskTime implements Analysis {
                 i++;
             }
             reader.close();
-            average_seconds = total_seconds / (i - 1);
+            average_seconds = total_seconds / (double)(i - 1);
 
             i = 1;
 
@@ -116,7 +116,7 @@ public class TaskTime implements Analysis {
                 total_square_distance_from_mean = total_square_distance_from_mean + (Math.pow((Double.parseDouble(read_all.get(i)[1]) - average_seconds), 2));
                 i++;
             }
-            standard_deviation = Math.sqrt(total_square_distance_from_mean / (i - 2));
+            standard_deviation = Math.sqrt(total_square_distance_from_mean / (double)(i - 2));
 
             total_line[0] = "Total Task Time:";
             total_line[2] = "Average Task Time:";
