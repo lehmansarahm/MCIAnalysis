@@ -60,8 +60,18 @@ public class ToolkitUtils {
      * @param s
      * @return
      */
-    public static boolean isNumeric(String s) {  
-        return s != null && s.matches("[-+]?\\d*\\.?\\d+");  
+    public static boolean isNumeric(String... s) {  
+    	boolean isNumeric = false;
+    	if (s != null) {
+    		isNumeric = true;
+    		for (String t : s) {
+    			if (t.equalsIgnoreCase("") || !t.matches("[-+]?\\d*\\.?\\d+")) {
+    				isNumeric = false;
+    				break;
+    			}
+    		}
+    	}
+        return isNumeric;  
     }
     
 }

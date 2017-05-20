@@ -23,6 +23,19 @@ public class Constants {
     public static final String DATA_COLUMN_START_END = "Start/End";
     public static final String DATA_COLUMN_ACTIVITY = "Activity";
     
+    public static enum INPUT_FILE_COLUMN_ORDER { 
+    	TIME, 
+    	RECORD_NUM, 
+    	AZIMUTH, 
+    	PITCH, 
+    	ROLL, 
+    	ACCEL_X, 
+    	ACCEL_Y, 
+    	ACCEL_Z, 
+    	START_END, 
+    	ACTIVITY 
+	};
+    
     public static final String ANALYSIS_ACCELERATION = "Acceleration";
     public static final String ANALYSIS_DIRECTION = "Direction";
     public static final String ANALYSIS_PAUSE = "Pause";
@@ -68,19 +81,6 @@ public class Constants {
     	PARAM1,
     	PARAM2
     }
-    
-    public static enum INPUT_FILE_COLUMN_ORDER { 
-    	TIME, 
-    	RECORD_NUM, 
-    	AZIMUTH, 
-    	PITCH, 
-    	ROLL, 
-    	ACCEL_X, 
-    	ACCEL_Y, 
-    	ACCEL_Z, 
-    	START_END, 
-    	ACTIVITY 
-	};
 	
 	public static enum PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER { 
 		START_TIME, 

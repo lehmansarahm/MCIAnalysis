@@ -3,96 +3,124 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package edu.temple.tan.mcianalysis.utils;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- *
- * @author philipcoulomb
- */
 public class AccelerationProcessing {
 
-    static float[] gravity = new float[3];
+    private static float[] GRAVITY = new float[] { 0.0F, 0.0F, 0.0F};
+    private static final int ACCEL_X = 0;
+    private static final int ACCEL_Y = 1;
+    private static final int ACCEL_Z = 2;
 
-    public static CSVReader convertToLinearAcceleration(CSVReader reader, String desired_file_name) throws IOException {
-        String file_path = new File("").getAbsolutePath();
-        String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_LINEAR);
-        new File(absolute_path).mkdirs();
-        String given_file[] = desired_file_name.split("/");
-        String[] next_write_line = new String[10];
-        desired_file_name = given_file[given_file.length - 1];
-        String new_file_path = file_path.concat(Constants.FOLDER_NAME_LINEAR + "/" + desired_file_name);
-        CSVWriter linear_writer = new CSVWriter(new FileWriter(new_file_path));
-        String[] nextLine;
-        boolean first_run_completed = false;
+    private static final int RAW_TIME_INDEX = INPUT_FILE_COLUMN_ORDER.TIME.ordinal();
+    private static final int RAW_ACCEL_X_INDEX = INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal();
+    private static final int RAW_ACCEL_Y_INDEX = INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal();
+    private static final int RAW_ACCEL_Z_INDEX = INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal();
+    private static final int RAW_ACTIVITY_INDEX = INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal();
 
-        next_write_line[0] = Constants.DATA_COLUMN_TIME;
-        next_write_line[1] = Constants.DATA_COLUMN_RECORD_NO;
-        next_write_line[2] = Constants.DATA_COLUMN_AZIMUTH;
-        next_write_line[3] = Constants.DATA_COLUMN_PITCH;
-        next_write_line[4] = Constants.DATA_COLUMN_ROLL;
-        next_write_line[5] = Constants.DATA_COLUMN_ACCEL_X;
-        next_write_line[6] = Constants.DATA_COLUMN_ACCEL_Y;
-        next_write_line[7] = Constants.DATA_COLUMN_ACCEL_Z;
-        next_write_line[8] = Constants.DATA_COLUMN_START_END;
-        next_write_line[9] = Constants.DATA_COLUMN_ACTIVITY;
+    /**
+     * 
+     * @param inputReader
+     * @param inputFileName
+     * @return
+     * @throws IOException
+     */
+    public static CSVReader convertToLinearAcceleration(CSVReader inputReader, String inputFileName) throws IOException {
+        String linearOutputDir = (new File("").getAbsolutePath()).concat(Constants.FOLDER_NAME_LINEAR);
+        new File(linearOutputDir).mkdirs();
+        
+        String fileNameComponents[] = inputFileName.split("/");
+        inputFileName = fileNameComponents[fileNameComponents.length - 1];
+        String newFilePath = linearOutputDir.concat("/" + inputFileName);
 
-        linear_writer.writeNext(next_write_line);
-        linear_writer.flush();
+        String[] nextWriteLine = new String[INPUT_FILE_COLUMN_ORDER.values().length];
+        nextWriteLine[RAW_TIME_INDEX] = Constants.DATA_COLUMN_TIME;
+        nextWriteLine[INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()] = Constants.DATA_COLUMN_RECORD_NO;
+        nextWriteLine[INPUT_FILE_COLUMN_ORDER.AZIMUTH.ordinal()] = Constants.DATA_COLUMN_AZIMUTH;
+        nextWriteLine[INPUT_FILE_COLUMN_ORDER.PITCH.ordinal()] = Constants.DATA_COLUMN_PITCH;
+        nextWriteLine[INPUT_FILE_COLUMN_ORDER.ROLL.ordinal()] = Constants.DATA_COLUMN_ROLL;
+        nextWriteLine[RAW_ACCEL_X_INDEX] = Constants.DATA_COLUMN_ACCEL_X;
+        nextWriteLine[RAW_ACCEL_Y_INDEX] = Constants.DATA_COLUMN_ACCEL_Y;
+        nextWriteLine[RAW_ACCEL_Z_INDEX] = Constants.DATA_COLUMN_ACCEL_Z;
+        nextWriteLine[INPUT_FILE_COLUMN_ORDER.START_END.ordinal()] = Constants.DATA_COLUMN_START_END;
+        nextWriteLine[RAW_ACTIVITY_INDEX] = Constants.DATA_COLUMN_ACTIVITY;
 
-        while ((nextLine = reader.readNext()) != null) {
-            if (!first_run_completed) {
-                gravity[0] = 0;
-                gravity[1] = 0;
-                gravity[1] = 0;
-                first_run_completed = true;
-            }
-            
-            if (!nextLine[0].equals(Constants.DATA_COLUMN_TIME)) {
-	            if (nextLine.length > 5 && !nextLine[2].equalsIgnoreCase("") && !nextLine[3].equalsIgnoreCase("") && !nextLine[4].equalsIgnoreCase(""))
-	            	writeLinearAcceleration(linear_writer, nextLine);
-	            if (nextLine.length > 9 && nextLine[8].equalsIgnoreCase("quit")) break;
-            }
+        CSVWriter writer = new CSVWriter(new FileWriter(newFilePath));
+        writer.writeNext(nextWriteLine);
+        writer.flush();
+
+        List<String[]> readerLines = inputReader.readAll();
+        if (readerLines.size() > 0) {
+	        for (String[] nextLine : readerLines) {
+	            if (!nextLine[RAW_TIME_INDEX].equals(Constants.DATA_COLUMN_TIME)) {
+		            if (nextLine.length > RAW_ACCEL_Z_INDEX)
+		            	writeLinearAcceleration(writer, nextLine);
+		            if (nextLine.length > (INPUT_FILE_COLUMN_ORDER.START_END.ordinal()) && 
+		            		nextLine[INPUT_FILE_COLUMN_ORDER.START_END.ordinal()].equalsIgnoreCase("quit")) 
+		            	break;
+	            }
+	        }
+        } else {
+			Logger.getLogger(AccelerationProcessing.class.getName()).log(Level.INFO, 
+	        		"No reader lines found in input file: " + inputFileName, "");
         }
         
-        linear_writer.close();
-
-        CSVReader linear_reader = new CSVReader(new FileReader(new_file_path), ',', '"', 0);
-        return linear_reader;
+        writer.close();
+        CSVReader linearReader = new CSVReader(new FileReader(newFilePath), ',', '"', 0);
+        return linearReader;
     }
 
-    private static void writeLinearAcceleration(CSVWriter linear_writer, String[] nextReadLine) throws IOException {
-    	if (ToolkitUtils.isNumeric(nextReadLine[3]) && ToolkitUtils.isNumeric(nextReadLine[4]) && ToolkitUtils.isNumeric(nextReadLine[2])) {
-	        final float alpha = (float) 0.8;
-	        float[] linear_acceleration = new float[3];
-	        
-	        gravity[0] = alpha * gravity[0] + (1 - alpha) * Float.valueOf(nextReadLine[3]);
-	        gravity[1] = alpha * gravity[1] + (1 - alpha) * Float.valueOf(nextReadLine[4]);
-	        gravity[2] = alpha * gravity[2] + (1 - alpha) * Float.valueOf(nextReadLine[2]);
+    /**
+     * 
+     * @param writer
+     * @param nextLine
+     * @throws IOException
+     */
+    private static void writeLinearAcceleration(CSVWriter writer, String[] nextLine) throws IOException {
+    	String rawXAccel = nextLine[RAW_ACCEL_X_INDEX].trim();
+    	String rawYAccel = nextLine[RAW_ACCEL_Y_INDEX].trim();
+    	String rawZAccel = nextLine[RAW_ACCEL_Z_INDEX].trim();
+    	
+    	if (ToolkitUtils.isNumeric(rawXAccel, rawYAccel, rawZAccel)) {
+            final float alpha = 0.8f;
+            float xAccel = Float.valueOf(rawXAccel);
+            float yAccel = Float.valueOf(rawYAccel);
+            float zAccel = Float.valueOf(rawZAccel);
+
+            GRAVITY[ACCEL_X] = alpha * GRAVITY[ACCEL_X] + (1 - alpha) * xAccel;
+            GRAVITY[ACCEL_Y] = alpha * GRAVITY[ACCEL_Y] + (1 - alpha) * yAccel;
+            GRAVITY[ACCEL_Z] = alpha * GRAVITY[ACCEL_Z] + (1 - alpha) * zAccel;
 	
-	        linear_acceleration[0] = Float.valueOf(nextReadLine[3]) - gravity[0];
-	        linear_acceleration[1] = Float.valueOf(nextReadLine[4]) - gravity[1];
-	        linear_acceleration[2] = Float.valueOf(nextReadLine[2]) - gravity[2];
-	
-	        nextReadLine[5] = String.valueOf(linear_acceleration[0]);
-	        nextReadLine[6] = String.valueOf(linear_acceleration[1]);
-	        nextReadLine[7] = String.valueOf(linear_acceleration[2]);
+	        nextLine[RAW_ACCEL_X_INDEX] = String.valueOf(xAccel - GRAVITY[ACCEL_X]);
+	        nextLine[RAW_ACCEL_Y_INDEX] = String.valueOf(yAccel - GRAVITY[ACCEL_Y]);
+	        nextLine[RAW_ACCEL_Z_INDEX] = String.valueOf(zAccel - GRAVITY[ACCEL_Z]);
 	        
-	        if (nextReadLine.length >= 10) {
-		        String[] activityNameComponents = nextReadLine[9].split(":");
-		        nextReadLine[9] = activityNameComponents[activityNameComponents.length - 1].replaceAll("[^\\dA-Za-z ]", "");
+	        if (nextLine.length > (RAW_ACTIVITY_INDEX + 1)) {
+		        String[] activityNameComponents = nextLine[RAW_ACTIVITY_INDEX].split(":");
+		        String activityName = activityNameComponents[activityNameComponents.length - 1];
+		        nextLine[RAW_ACTIVITY_INDEX] = activityName.replaceAll("[^\\dA-Za-z ]", "");
 	        }
 	
-	        linear_writer.writeNext(nextReadLine);
-	        linear_writer.flush();
-    	}
+	        writer.writeNext(nextLine);
+	        writer.flush();
+    	} else {
+			Logger.getLogger(AccelerationProcessing.class.getName()).log(Level.INFO, 
+	        		"Cannot parse accel data at time: " + nextLine[RAW_TIME_INDEX], "");
+        }
     }
 
 }
