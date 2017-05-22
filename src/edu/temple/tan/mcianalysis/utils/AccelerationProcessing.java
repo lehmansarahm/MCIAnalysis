@@ -97,6 +97,8 @@ public class AccelerationProcessing {
     	
     	if (ToolkitUtils.isNumeric(rawXAccel, rawYAccel, rawZAccel)) {
             final float alpha = 0.8f;
+            final float noise = 0.1f;
+            
             float xAccel = Float.valueOf(rawXAccel);
             float yAccel = Float.valueOf(rawYAccel);
             float zAccel = Float.valueOf(rawZAccel);
@@ -104,10 +106,18 @@ public class AccelerationProcessing {
             GRAVITY[ACCEL_X] = alpha * GRAVITY[ACCEL_X] + (1 - alpha) * xAccel;
             GRAVITY[ACCEL_Y] = alpha * GRAVITY[ACCEL_Y] + (1 - alpha) * yAccel;
             GRAVITY[ACCEL_Z] = alpha * GRAVITY[ACCEL_Z] + (1 - alpha) * zAccel;
-	
-	        nextLine[RAW_ACCEL_X_INDEX] = String.valueOf(xAccel - GRAVITY[ACCEL_X]);
-	        nextLine[RAW_ACCEL_Y_INDEX] = String.valueOf(yAccel - GRAVITY[ACCEL_Y]);
-	        nextLine[RAW_ACCEL_Z_INDEX] = String.valueOf(zAccel - GRAVITY[ACCEL_Z]);
+            
+            float noGravX = (xAccel - GRAVITY[ACCEL_X]);
+            float noNoiseX = (Math.abs(noGravX) < noise) ? 0.0f : noGravX;
+	        nextLine[RAW_ACCEL_X_INDEX] = String.valueOf(noNoiseX);
+            
+            float noGravY = (yAccel - GRAVITY[ACCEL_Y]);
+            float noNoiseY = (Math.abs(noGravY) < noise) ? 0.0f : noGravY;
+	        nextLine[RAW_ACCEL_Y_INDEX] = String.valueOf(noNoiseY);
+            
+            float noGravZ = (zAccel - GRAVITY[ACCEL_Z]);
+            float noNoiseZ = (Math.abs(noGravZ) < noise) ? 0.0f : noGravZ;
+	        nextLine[RAW_ACCEL_Z_INDEX] = String.valueOf(noNoiseZ);
 	        
 	        if (nextLine.length > (RAW_ACTIVITY_INDEX + 1)) {
 		        String[] activityNameComponents = nextLine[RAW_ACTIVITY_INDEX].split(":");
