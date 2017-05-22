@@ -118,4 +118,5 @@ public class Acceleration implements Analysis {
 
         return absolute_path;
     }
+
 }

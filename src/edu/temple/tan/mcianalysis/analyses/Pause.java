@@ -65,7 +65,7 @@ public class Pause implements Analysis {
         boolean pause_recorded = false;
 
         //variables to record the timing from each row and determine duration of pauses
-        SimpleDateFormat date_format = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT);
+        SimpleDateFormat date_format = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_LONG);
         Date start_time = null;
         Date end_time;
         double duration;
@@ -166,7 +166,7 @@ public class Pause implements Analysis {
 
         }
         
-        MCIAnalysis.pause_utilized = true;
+        MCIAnalysis.pauseUtilized = true;
 
     }
 
@@ -309,4 +309,5 @@ public class Pause implements Analysis {
 
         return absolute_path;
     }
+
 }

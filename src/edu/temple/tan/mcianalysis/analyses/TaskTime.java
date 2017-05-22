@@ -3,6 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package edu.temple.tan.mcianalysis.analyses;
 
 import com.opencsv.CSVReader;
@@ -24,163 +25,166 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Matt
- */
 public class TaskTime implements Analysis {
 
+	/**
+	 * 
+     * @param filePath
+     * @param userID
+     * @param param1
+     * @param param2
+	 */
     @Override
-    public void beginAnalysis(String file_path, String user_id, String param1, String param2) {
-        CSVReader reader;
-
+    public void beginAnalysis(String filePath, String userID, String param1, String param2) {
         try {
-            reader = new CSVReader(new FileReader(file_path), ',', '"', 0);
-            processTaskTime(reader, user_id,file_path);
-
+        	CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);
+            processTaskTime(reader, userID,filePath);
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(Acceleration.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TaskTime.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(TaskTime.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParseException ex) {
             Logger.getLogger(TaskTime.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
-    private void processTaskTime(CSVReader reader, String user_id,String file_path) throws IOException, ParseException {
-        List<String[]> read_all = new ArrayList<String[]>();
-        SimpleDateFormat date_format = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT);
-        Date start_time = null;
-        Date end_time;
-        long duration;
-
-        //--------------------------------------------------------
-        // Read in every line of the file
-        //--------------------------------------------------------
-        read_all = reader.readAll();
-
-        //--------------------------------------------------------
-        // Generate the total time the task took to be completed
-        //--------------------------------------------------------
-        start_time = date_format.parse(read_all.get(1)[0]);
-        end_time = date_format.parse(read_all.get(read_all.size() - 1)[0]);
-        duration = end_time.getTime() - start_time.getTime();
-        double diffInSeconds = (duration > 0) ? (((double)duration) / 1000.0) 
-        		: (Constants.SAMPLING_PERIOD * (read_all.size() - 1));
-
-        //file_path = path_to_directory.concat("/" + user_id +"_"+ read_all.get(1)[9] +"_"+ MCIAnaylsis.run_time +".csv");
-
-        updateTaskTime(file_path, diffInSeconds, user_id);
+    /**
+     * 
+     * @param reader
+     * @param userID
+     * @param filePath
+     * @throws IOException
+     * @throws ParseException
+     */
+    private void processTaskTime(CSVReader reader, String userID, String filePath) throws IOException, ParseException {
+        List<String[]> readerContents = reader.readAll();
         
-    }
-
-    private void updateTaskTime(String file_path, double diffInSeconds, String user_id) throws FileNotFoundException, IOException {
-        CSVReader reader = null;
-        CSVWriter writer = null;
-        double total_seconds = 0;
-        double average_seconds = 0;
-        double total_square_distance_from_mean = 0;
-        double standard_deviation = 0;
-        String path_to_csv = initialFileSetup(file_path, user_id);
-        List<String[]> read_all = new ArrayList<String[]>();
-        String[] new_line = new String[2];
-        String[] total_line = new String[6];
-        new_line[0] = user_id;
-        new_line[1] = String.valueOf(diffInSeconds);
-
+        long durationInMS = 0;
+        Date startTime = null, endTime = null;
         try {
-            reader = new CSVReader(new FileReader(path_to_csv), ',', '"', 0);
-
-        } catch (FileNotFoundException ex) {
-            writer = new CSVWriter(new FileWriter(path_to_csv));
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_LONG);
+            startTime = dateFormat.parse(readerContents.get(1)[0]);
+            endTime = dateFormat.parse(readerContents.get(readerContents.size() - 1)[0]);
+        } catch (ParseException ex) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_SHORT);
+            startTime = dateFormat.parse(readerContents.get(1)[0]);
+            endTime = dateFormat.parse(readerContents.get(readerContents.size() - 1)[0]);
+        } finally {
+            durationInMS = endTime.getTime() - startTime.getTime();
         }
+        
+        double taskTimeInSec = (((double)durationInMS) / 1000.0);
+        double durationInSec = (((taskTimeInSec == Math.floor(taskTimeInSec)) && !Double.isInfinite(taskTimeInSec))) 
+        		? ((Constants.SAMPLING_PERIOD * (readerContents.size() - 1)) / 1000.0) : taskTimeInSec;
 
-        if (reader != null) {
-            read_all = reader.readAll();
-            read_all.remove(read_all.size() - 1);
-            read_all.add(read_all.size() - 1, new_line);
+        updateTaskTime(filePath, durationInSec, userID);
+    }
 
-            int i = 1;
-
-            while (i < read_all.size()) {
-                total_seconds = total_seconds + Double.parseDouble(read_all.get(i)[1]);
-                i++;
-            }
+    /**
+     * 
+     * @param filePath
+     * @param taskDurInSec
+     * @param userID
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    private void updateTaskTime(String filePath, double taskDurInSec, String userID) 
+    							throws FileNotFoundException, IOException {
+        String csvFilePath = initialFileSetup(filePath, userID);
+        List<String[]> fileContents = new ArrayList<String[]>();
+        
+        double totalSec = 0, avgSec = 0;
+        double totalSqFromMean = 0, stdDev = 0;
+        
+        try {
+        	CSVReader reader = new CSVReader(new FileReader(csvFilePath), ',', '"', 0);
+        	fileContents = reader.readAll();
             reader.close();
-            average_seconds = total_seconds / (double)(i - 1);
 
-            i = 1;
-
-            while (i < read_all.size()) {
-                total_square_distance_from_mean = total_square_distance_from_mean + (Math.pow((Double.parseDouble(read_all.get(i)[1]) - average_seconds), 2));
-                i++;
+            fileContents.remove(fileContents.size() - 1);
+            fileContents.add(fileContents.size() - 1, 
+            		new String[] { userID, String.valueOf(taskDurInSec) });
+            
+            for (int i = 1; i < fileContents.size(); i++) {
+                totalSec += Double.parseDouble(fileContents.get(i)[1]);
+                totalSqFromMean += 
+                		(Math.pow((Double.parseDouble(fileContents.get(i)[1]) - avgSec), 2));
             }
-            standard_deviation = Math.sqrt(total_square_distance_from_mean / (double)(i - 2));
-
-            total_line[0] = "Total Task Time:";
-            total_line[2] = "Average Task Time:";
-            total_line[4] = "Task Time Sample Standard Deviation:";
-            total_line[1] = String.valueOf(total_seconds);
-            total_line[3] = String.valueOf(average_seconds);
-            total_line[5] = String.valueOf(standard_deviation);
-
-            read_all.add(total_line);
-
-            writer = new CSVWriter(new FileWriter(path_to_csv));
-            writer.writeAll(read_all);
             
-            writer.close();
-          
-
-        } else {
-            new_line = new String[2];
-            total_line = new String[6];
-
-            new_line[0] = "User ID:";
-            new_line[1] = "Task Time (Seconds):";
-            writer.writeNext(new_line);
-
-            new_line[0] = user_id;
-            new_line[1] = String.valueOf(diffInSeconds);
-            writer.writeNext(new_line);
-
-            total_line[0] = "Total Task Time:";
-            total_line[1] = String.valueOf(diffInSeconds);
-            total_line[2] = "Average Task Time:";
-            total_line[3] = String.valueOf(diffInSeconds);
-            total_line[4] = "Task Time Sample Standard Deviation:";
-            total_line[5] = "0";
-
-            writer.writeNext(total_line);
-            
-           writer.close();
+            int recordCount = (fileContents.size() - 1);
+            avgSec = totalSec / (double)(recordCount - 1);
+            stdDev = Math.sqrt(totalSqFromMean / (double)(recordCount - 2));
+        } catch (FileNotFoundException ex) {
+        	fileContents.add(new String[] { "User ID", "Task Time" });
+            fileContents.add(new String[] { userID, String.valueOf(taskDurInSec) });
+            totalSec = taskDurInSec;
+            avgSec = taskDurInSec;
         }
+
+        String[] totalLine = new String[6];
+        totalLine[0] = "Total Task Time:";
+        totalLine[2] = "Average Task Time:";
+        totalLine[4] = "Task Time Sample Standard Deviation:";
+        totalLine[1] = String.valueOf(totalSec);
+        totalLine[3] = String.valueOf(avgSec);
+        totalLine[5] = String.valueOf(stdDev);
+        fileContents.add(totalLine);
+
+        CSVWriter writer = new CSVWriter(new FileWriter(csvFilePath));
+        writer.writeAll(fileContents);
+        writer.close();
         
-        MCIAnalysis.time_utilized = true;
+		/*new_line = new String[2];
+		total_line = new String[6];
+		
+		new_line[0] = "User ID:";
+		new_line[1] = "Task Time (Seconds):";
+		writer.writeNext(new_line);
+		
+		new_line[0] = userID;
+		new_line[1] = String.valueOf(taskDurInSec);
+		writer.writeNext(new_line);
+		
+		total_line[0] = "Total Task Time:";
+		total_line[1] = String.valueOf(taskDurInSec);
+		total_line[2] = "Average Task Time:";
+		total_line[3] = String.valueOf(taskDurInSec);
+		total_line[4] = "Task Time Sample Standard Deviation:";
+		total_line[5] = "0";
+		
+		writer.writeNext(total_line);
+		    
+		writer.close();*/
+        
+        MCIAnalysis.taskTimeUtilized = true;
     }
 
-    //-----------------------------------------------------------------------------
-    // The initialFileSetup method is responsible for ensuring the proper
-    // directories are setup and that the CSVWriter has a valid and clear filename
-    // to write to.
-    //-----------------------------------------------------------------------------
-    private String initialFileSetup(String file_path, String user_id) {
-
-        String[] path_components = file_path.split("/");
-        String desired_filename = path_components[path_components.length - 1];
-        String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_FINAL);
-        new File(absolute_path).mkdirs();
-        absolute_path = absolute_path.concat(Constants.FOLDER_NAME_TASK_TIME);
-        new File(absolute_path).mkdirs();
+    /**
+     * The initialFileSetup method is responsible for ensuring the proper
+     * directories are setup and that the CSVWriter has a valid and clear filename
+     * to write to.
+     * 
+     * @param filePath
+     * @param userID
+     * @return
+     */
+    private String initialFileSetup(String filePath, String userID) {
+        String[] pathComponents = filePath.split("/");
+        String targetFileName = pathComponents[pathComponents.length - 1];
         
-        absolute_path = absolute_path.concat("/"+user_id);
-        new File(absolute_path).mkdirs();
+        String absolutePath = new File("").getAbsolutePath();
+        absolutePath = absolutePath.concat(Constants.FOLDER_NAME_FINAL);
+        new File(absolutePath).mkdirs();
         
-        absolute_path = absolute_path.concat("/");
-        absolute_path = absolute_path.concat(desired_filename);
-
-        return absolute_path;
+        absolutePath = absolutePath.concat(Constants.FOLDER_NAME_TASK_TIME);
+        new File(absolutePath).mkdirs();
+        
+        absolutePath = absolutePath.concat("/" + userID);
+        new File(absolutePath).mkdirs();
+        
+        absolutePath = absolutePath.concat("/");
+        absolutePath = absolutePath.concat(targetFileName);
+        return absolutePath;
     }
+
 }

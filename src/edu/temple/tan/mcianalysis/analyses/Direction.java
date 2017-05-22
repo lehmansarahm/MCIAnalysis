@@ -78,7 +78,7 @@ public class Direction implements Analysis {
         boolean first_line_read = false;
 
         //variables to record the timing from each row
-        SimpleDateFormat date_format = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT);
+        SimpleDateFormat date_format = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_LONG);
         Date start_time = null;
 
         CSVWriter direction_csv_writer;
@@ -227,7 +227,7 @@ public class Direction implements Analysis {
 
         }
         
-        MCIAnalysis.direction_utilized = true;
+        MCIAnalysis.directionUtilized = true;
     }
 
     //------------------------------------------------------------------

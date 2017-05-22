@@ -7,10 +7,15 @@ public class Constants {
 	
     public static final double SAMPLING_PERIOD = 34.4827586207;	// milliseconds ... approx 29 times per second
     public static final String ANALYSIS_NAMESPACE = "edu.temple.tan.mcianalysis.analyses.";
-    public static final String SIMPLE_TIME_FORMAT = "HH:mm:ss";
+    public static final String SIMPLE_TIME_FORMAT_LONG = "HH:mm:ss.SSS";
+    public static final String SIMPLE_TIME_FORMAT_SHORT = "HH:mm:ss";
+    public static final String SIMPLE_DATE_TIME_FORMAT = "yyyyMMdd_HHmm";
     
     public static final String CONFIG_FILE = "configuration.txt";
     public static final String ERROR_LOG = "Errors.txt";
+    
+    public static final String FLAG_START = "start";
+    public static final String FLAG_QUIT = "quit";
 
     public static final String DATA_COLUMN_TIME = "Time";
     public static final String DATA_COLUMN_RECORD_NO = "Record No";
@@ -20,7 +25,7 @@ public class Constants {
     public static final String DATA_COLUMN_ACCEL_X = "Accel-X";
     public static final String DATA_COLUMN_ACCEL_Y = "Accel-Y";
     public static final String DATA_COLUMN_ACCEL_Z = "Accel-Z";
-    public static final String DATA_COLUMN_START_END = "Start/End";
+    public static final String DATA_COLUMN_START_END = "Start/Quit";
     public static final String DATA_COLUMN_ACTIVITY = "Activity";
     
     public static enum INPUT_FILE_COLUMN_ORDER { 

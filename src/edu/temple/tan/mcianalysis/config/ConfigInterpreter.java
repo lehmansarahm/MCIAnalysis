@@ -105,7 +105,7 @@ public class ConfigInterpreter {
 	                                    	// do something
 	                                    } else {
 	                                        String inner_file_path = innerMostFiles[m].getAbsolutePath();
-	                                        if (inner_file_path.contains(MCIAnalysis.run_time)) {
+	                                        if (inner_file_path.contains(MCIAnalysis.runTime)) {
 	                                            CSVWriter writer = new CSVWriter(new FileWriter(inner_file_path, true));
 	                                            for (String config : configuration) {
 	                                            	writer.writeNext(new String[] { config });
@@ -116,7 +116,7 @@ public class ConfigInterpreter {
 	                                }
 	                            } else {
 	                                String file_path = innerFiles2[k].getAbsolutePath();
-	                                if (file_path.contains(MCIAnalysis.run_time)) {
+	                                if (file_path.contains(MCIAnalysis.runTime)) {
 	                                    CSVWriter writer = new CSVWriter(new FileWriter(file_path, true));
 	                                    for (String config : configuration) {
 	                                    	writer.writeNext(new String[] { config });
@@ -127,7 +127,7 @@ public class ConfigInterpreter {
 	                        }
 	                    } else {
 	                        String outer_file_path = innerFiles[j].getAbsolutePath();
-	                        if (outer_file_path.contains(MCIAnalysis.run_time)) {
+	                        if (outer_file_path.contains(MCIAnalysis.runTime)) {
 	                            CSVWriter writer = new CSVWriter(new FileWriter(outer_file_path, true));
 	                            for (String config : configuration) {
 	                            	writer.writeNext(new String[] { config });

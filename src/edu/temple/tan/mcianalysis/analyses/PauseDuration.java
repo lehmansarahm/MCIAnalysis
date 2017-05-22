@@ -119,7 +119,7 @@ public class PauseDuration extends PauseBase implements Analysis {
 
     	// Finalize the output file and update toolkit state
         finalizePauseCSV();
-        MCIAnalysis.pause_utilized = true;
+        MCIAnalysis.pauseUtilized = true;
         writer.close();
     }
     

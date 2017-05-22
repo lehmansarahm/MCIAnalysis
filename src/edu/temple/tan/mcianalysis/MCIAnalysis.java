@@ -39,12 +39,12 @@ import org.apache.commons.io.FileUtils;
  */
 public class MCIAnalysis {
 
-    public static Set<String> requested_activities_set = new HashSet<>();
-    public static String run_time;
-    public static String acceleration_processing;
-    public static boolean direction_utilized = false;
-    public static boolean pause_utilized = false;
-    public static boolean time_utilized = false;
+    public static Set<String> requestedActivitySet = new HashSet<>();
+    public static String runTime;
+    public static String accelerationProcessing;
+    public static boolean directionUtilized = false;
+    public static boolean pauseUtilized = false;
+    public static boolean taskTimeUtilized = false;
     
     /**
      * Primary operation method
@@ -122,10 +122,10 @@ public class MCIAnalysis {
                     CSVReader reader = new CSVReader(new FileReader(targetFile), ',', '"', 0);
                     switch (acceleration_process) {
                         case 0:
-                            acceleration_processing = "Raw";
+                            accelerationProcessing = "Raw";
                             break;
                         case 1:
-                            acceleration_processing = "Linear";
+                            accelerationProcessing = "Linear";
         	                reader = AccelerationProcessing.convertToLinearAcceleration(reader, rawFilename);
         	                break;
                         default:
@@ -170,10 +170,10 @@ public class MCIAnalysis {
 
         // Write out final results
 		ConfigInterpreter.writeConfigSettingsToOutputFiles();
-		if (direction_utilized) DirectionAggregate.aggregateDirectionCSV();
-		if (pause_utilized) PauseAggregate.aggregatePauseCSV();
-		if (time_utilized) TimeAggregate.aggregateTimeCSV();
-		if (pause_utilized && time_utilized) UserAggregate.aggregateUserResultsCSV();
+		if (directionUtilized) DirectionAggregate.aggregateDirectionCSV();
+		if (pauseUtilized) PauseAggregate.aggregatePauseCSV();
+		if (taskTimeUtilized) TimeAggregate.aggregateTimeCSV();
+		if (pauseUtilized && taskTimeUtilized) UserAggregate.aggregateUserResultsCSV();
 	}
     
     /**

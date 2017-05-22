@@ -41,7 +41,7 @@ public class PauseBase {
 	 */
 	protected boolean isHeaderLine(String nextLine[]) {
 		String time =  nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
-		return (time.equals("Time:"));
+		return (time.equals(Constants.DATA_COLUMN_TIME));
 	}
 	
 	/**

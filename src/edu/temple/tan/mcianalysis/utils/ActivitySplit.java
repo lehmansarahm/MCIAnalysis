@@ -16,167 +16,211 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- *
- * @author Matt
- */
 public class ActivitySplit {
 
-    public static String generateActivitySpecificCSV(CSVReader csv_file, String user_id, 
-	  String requested_activity) throws IOException {
-        String file_path = new File("").getAbsolutePath();
-
-        String time_stamp = new SimpleDateFormat("yyyy-MM-dd_HH_mm").format(new java.util.Date());
-        MCIAnalysis.run_time = time_stamp;
-
-        MCIAnalysis.requested_activities_set.add(requested_activity);
+	/**
+	 * 
+	 * @param reader
+	 * @param userID
+	 * @param requestedActivityName
+	 * @return
+	 * @throws IOException
+	 */
+    public static String generateActivitySpecificCSV(CSVReader reader, String userID, 
+    												String requestedActivityName) throws IOException {
+        String timeStamp = getTimeStamp();
+        MCIAnalysis.requestedActivitySet.add(requestedActivityName);
 
         //----------------------------------------------------------------------
-        // The new csv file name will be the user id, activity, and time stamp
+        // The new CSV file name will be the user id, activity, and time stamp
         //----------------------------------------------------------------------
-        String absolute_path = new File("").getAbsolutePath();
-        absolute_path = absolute_path.concat("/Intermediate");
-        new File(absolute_path).mkdirs();
-        
-        String file_name = "/Intermediate/" + user_id + "_" 
-        		+ requested_activity.replace(" ", "_") + "_" + time_stamp + ".csv";
-        String full_file_path = file_path.concat(file_name);
+        String intermFilePath = getIntermFilePath(userID, null, requestedActivityName, timeStamp);
+        CSVWriter writer = new CSVWriter(new FileWriter(intermFilePath));
+        writer.writeNext(getHeaderLine());
 
-        CSVWriter activity_csv_writer = new CSVWriter(new FileWriter(full_file_path));
-
+        //----------------------------------------------------------------------
+        // If the line belongs to the requested activity, it is written to the 
+        // new CSV file in the Intermediate folder.
+        //----------------------------------------------------------------------
         String[] nextLine;
-
-        //---------------------------------------------------
-        // If the line belongs to the requested activity 
-        // it is written to the new csv file in the Results
-        // folder.
-        //---------------------------------------------------
-        while ((nextLine = csv_file.readNext()) != null) {
-            if (nextLine[9].equals(requested_activity)) {
-                activity_csv_writer.writeNext(nextLine);
+        while ((nextLine = reader.readNext()) != null) {
+            if (nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()].equals(requestedActivityName)) {
+                writer.writeNext(nextLine);
             }
         }
 
-        // close the csv writer
-        activity_csv_writer.close();
-        csv_file.close();
+        //----------------------------------------------------------------------
+        // close the CSV writer
+        //----------------------------------------------------------------------
+        writer.close();
+        reader.close();
 
-        return full_file_path;
+        //----------------------------------------------------------------------
+        // return the path to the new intermediate file
+        //----------------------------------------------------------------------
+        return intermFilePath;
     }
 
-    public static List<String> generateCSVForAllActivities(CSVReader csv_file, String user_id) throws IOException {
-        List<String> activity_csv_paths = new ArrayList<String>();
-        boolean activity_started = false;
-        CSVReader single_activity_csv_reader;
-        String requested_activity = "NotInitialized";
-        String file_path = new File("").getAbsolutePath();
-        String full_file_path = null;
-        CSVWriter activity_csv_writer = null;
+    /**
+     * 
+     * @param reader
+     * @param userID
+     * @return
+     * @throws IOException
+     */
+    public static List<String> generateCSVForAllActivities(CSVReader reader, String userID) throws IOException {
+		Logger.getLogger(ActivitySplit.class.getName()).log(Level.INFO, 
+        		"Splitting interm activities for user: " + userID, "");
+    	
+        List<String> intermFilePaths = new ArrayList<String>();
+        String[] headerLine = getHeaderLine();
+        String timeStamp = getTimeStamp();
+        String intermFilePath = null;
+        
+        int taskStartIndex = Constants.INPUT_FILE_COLUMN_ORDER.START_END.ordinal();
+        int activityIndex = Constants.INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal();
 
-        String time_stamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm").format(new java.util.Date());
-        MCIAnalysis.run_time = time_stamp;
-
+        CSVWriter writer = null;
+        boolean activityStarted = false;
+        String requestedActivityName = "NotInitialized";
+        
+        //----------------------------------------------------------------------
+        // If the line belongs to the requested activity, it is written to the 
+        // new CSV file in the Intermediate folder.
+        //----------------------------------------------------------------------
         String[] nextLine;
-        String[] next_write_line = new String[10];
-
-        //---------------------------------------------------
-        // If the line belongs to the requested activity 
-        // it is written to the new csv file in the Results
-        // folder.
-        //---------------------------------------------------
-        while ((nextLine = csv_file.readNext()) != null) {
-
-            if (nextLine.length > 9 && nextLine[8].equalsIgnoreCase("start")) {
-                activity_started = true;
-                requested_activity = nextLine[9];
-                MCIAnalysis.requested_activities_set.add(requested_activity);
-                String absolute_path = new File("").getAbsolutePath();
-                absolute_path = absolute_path.concat("/Intermediate");
-                new File(absolute_path).mkdirs();
+        while ((nextLine = reader.readNext()) != null) {
+            if (!activityStarted && matchesFlag(nextLine, taskStartIndex, Constants.FLAG_START)) {
+                requestedActivityName = nextLine[activityIndex];
+                MCIAnalysis.requestedActivitySet.add(requestedActivityName);
+                activityStarted = true;
 
                 //----------------------------------------------------------------------
                 // The new csv file name will be the user id, activity, and time stamp
                 //----------------------------------------------------------------------
-                String file_name = "/Intermediate/" + user_id + "_" + MCIAnalysis.acceleration_processing 
-                		+ "_" + requested_activity.replace(" ", "_") + "_" + time_stamp + ".csv";
-                full_file_path = file_path.concat(file_name);
+                intermFilePath = getIntermFilePath(userID, MCIAnalysis.accelerationProcessing, 
+                		requestedActivityName, timeStamp);
+                writer = new CSVWriter(new FileWriter(intermFilePath));
+                writer.writeNext(headerLine);
+            }
+            
+            if (activityStarted) {
+                if (matchesFlag(nextLine, activityIndex, requestedActivityName)) {
+                	//----------------------------------------------------------------------
+                	// This activity matches the expected activity ...
+                	// Copy to the current intermediate file
+                	//----------------------------------------------------------------------
+                    writer.writeNext(nextLine);
+                } else {
+                	//----------------------------------------------------------------------
+                	// We have encountered a new activity ...
+                    // Close current writer and add the file path to the array of files
+                	//----------------------------------------------------------------------
+                    intermFilePaths.add(intermFilePath);
+                    writer.close();
 
-                activity_csv_writer = new CSVWriter(new FileWriter(full_file_path));
+                	//----------------------------------------------------------------------
+                    // The new activity is now the requested activity...
+                    // Create a new CSV file to store the data.
+                	//----------------------------------------------------------------------
+                    requestedActivityName = nextLine[activityIndex];
+                    MCIAnalysis.requestedActivitySet.add(requestedActivityName);
+                    intermFilePath = getIntermFilePath(userID, MCIAnalysis.accelerationProcessing, 
+                    		requestedActivityName, timeStamp);
 
-                next_write_line[0] = "Time:";
-                next_write_line[1] = "Reading Number:";
-                next_write_line[2] = "Azimuth:";
-                next_write_line[3] = "Pitch:";
-                next_write_line[4] = "Roll:";
-                next_write_line[5] = "Acceleration X:";
-                next_write_line[6] = "Acceleration Y:";
-                next_write_line[7] = "Acceleration Z:";
-                next_write_line[8] = "Start/End:";
-                next_write_line[9] = "Activity:";
-
-                activity_csv_writer.writeNext(next_write_line);
-
+                	//----------------------------------------------------------------------
+                    // Write the expected header to the new file, followed by the new activity line
+                	//----------------------------------------------------------------------
+                    writer = new CSVWriter(new FileWriter(intermFilePath));
+                    writer.writeNext(headerLine);
+                    writer.writeNext(nextLine);
+                }
             }
 
-            if (nextLine.length > 10 && nextLine[9].equalsIgnoreCase(requested_activity) && activity_started) {
-                activity_csv_writer.writeNext(nextLine);
-            } else if (activity_started) {
-                //------------------------------------------
-                // Close current writer and add the file
-                // path to the array of files
-                //------------------------------------------
-                activity_csv_writer.close();
-                activity_csv_paths.add(full_file_path);
-                String absolute_path = new File("").getAbsolutePath();
-                absolute_path = absolute_path.concat("/Intermediate");
-                new File(absolute_path).mkdirs();
-                //-----------------------------------------------------
-                // The new activity is now the requested_activity
-                // create a new CSV file to store the data
-                //-----------------------------------------------------
-                requested_activity = nextLine[9];
-                MCIAnalysis.requested_activities_set.add(requested_activity);
-                String file_name = "/Intermediate/" + user_id + "_" + MCIAnalysis.acceleration_processing + "_" + requested_activity + "_" + time_stamp + ".csv";
-                full_file_path = file_path.concat(file_name);
-
-                activity_csv_writer = new CSVWriter(new FileWriter(full_file_path));
-
-                next_write_line[0] = "Time:";
-                next_write_line[1] = "Reading Number:";
-                next_write_line[2] = "Azimuth:";
-                next_write_line[3] = "Pitch:";
-                next_write_line[4] = "Roll:";
-                next_write_line[5] = "Acceleration X:";
-                next_write_line[6] = "Acceleration Y:";
-                next_write_line[7] = "Acceleration Z:";
-                next_write_line[8] = "Start/End:";
-                next_write_line[9] = "Activity:";
-
-                activity_csv_writer.writeNext(next_write_line);
-
-                //-----------------------------------------------
-                // Write the current line into the CSV file
-                //-----------------------------------------------
-                activity_csv_writer.writeNext(nextLine);
+        	//----------------------------------------------------------------------
+            // If we find the "quit" line, force the process to stop
+        	//----------------------------------------------------------------------
+            if (matchesFlag(nextLine, taskStartIndex, Constants.FLAG_QUIT)) {
+                break;	//end the loop
             }
-
-            if (nextLine.length > 9 && nextLine[8].equalsIgnoreCase("quit")) {
-                //end the loop
-                break;
-            }
-
         }
 
-        //------------------------------------------
-        // Close current writer and add the file
-        // path to the array of files
-        //------------------------------------------
-        if (activity_csv_writer != null) {
-            activity_csv_writer.close();
-            activity_csv_paths.add(full_file_path);
+    	//----------------------------------------------------------------------
+        // Close current writer and add the file path to the array of files
+    	//----------------------------------------------------------------------
+        if (writer != null) {
+            writer.close();
+            intermFilePaths.add(intermFilePath);
         }
         
-        return activity_csv_paths;
+        return intermFilePaths;
     }
+
+    /**
+     * 
+     * @return
+     */
+    private static String getTimeStamp() {
+        String timeStamp = new SimpleDateFormat(Constants.SIMPLE_DATE_TIME_FORMAT).format(new java.util.Date());
+        MCIAnalysis.runTime = timeStamp;
+        return timeStamp;
+    }
+    
+    /**
+     * 
+     * @param userID
+     * @param requestedActivityName
+     * @param timeStamp
+     * @return
+     */
+    private static String getIntermFilePath(String userID, String accelProcessing, String requestedActivityName, String timeStamp) {
+        String absolutePath = new File("").getAbsolutePath();
+        new File(absolutePath.concat(Constants.FOLDER_NAME_INTERMEDIATE)).mkdirs();
+        
+        String intermFileName = Constants.FOLDER_NAME_INTERMEDIATE + "/" + userID 
+        		+ (accelProcessing != null ? "_" + accelProcessing : "")
+        		+ "_" + requestedActivityName.replace(" ", "_") + "_" + timeStamp + ".csv";
+        String intermFilePath = absolutePath.concat(intermFileName);
+
+		Logger.getLogger(ActivitySplit.class.getName()).log(Level.INFO, 
+        		"New interm file path generated for activity: " + requestedActivityName, "");
+        return intermFilePath;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    private static String[] getHeaderLine() {
+        String[] headerLine = new String[] {
+        		Constants.DATA_COLUMN_TIME,
+        		Constants.DATA_COLUMN_RECORD_NO,
+        		Constants.DATA_COLUMN_AZIMUTH,
+        		Constants.DATA_COLUMN_PITCH,
+        		Constants.DATA_COLUMN_ROLL,
+        		Constants.DATA_COLUMN_ACCEL_X,
+        		Constants.DATA_COLUMN_ACCEL_Y,
+        		Constants.DATA_COLUMN_ACCEL_Z,
+        		Constants.DATA_COLUMN_START_END,
+        		Constants.DATA_COLUMN_ACTIVITY
+        };
+        return headerLine;
+    }
+    
+    /**
+     * 
+     * @param line
+     * @param index
+     * @param flag
+     * @return
+     */
+    private static boolean matchesFlag(String[] line, int index, String flag) {
+    	boolean isLineLongEnough = (line.length > index);
+    	boolean isFlagPresent = isLineLongEnough && line[index].equalsIgnoreCase(flag);    	
+    	return isFlagPresent;
+    }
+    
 }
