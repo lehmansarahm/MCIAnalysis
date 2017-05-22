@@ -31,6 +31,8 @@ public class AccelerationProcessing {
     private static final int RAW_ACCEL_Y_INDEX = INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal();
     private static final int RAW_ACCEL_Z_INDEX = INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal();
     private static final int RAW_ACTIVITY_INDEX = INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal();
+    
+    private static final boolean USE_NOISE_FILTERING = false;
 
     /**
      * 
@@ -109,15 +111,15 @@ public class AccelerationProcessing {
             
             float noGravX = (xAccel - GRAVITY[ACCEL_X]);
             float noNoiseX = (Math.abs(noGravX) < noise) ? 0.0f : noGravX;
-	        nextLine[RAW_ACCEL_X_INDEX] = String.valueOf(noNoiseX);
+	        nextLine[RAW_ACCEL_X_INDEX] = USE_NOISE_FILTERING ? String.valueOf(noNoiseX) : String.valueOf(noGravX);
             
             float noGravY = (yAccel - GRAVITY[ACCEL_Y]);
             float noNoiseY = (Math.abs(noGravY) < noise) ? 0.0f : noGravY;
-	        nextLine[RAW_ACCEL_Y_INDEX] = String.valueOf(noNoiseY);
+	        nextLine[RAW_ACCEL_Y_INDEX] = USE_NOISE_FILTERING ? String.valueOf(noNoiseY) : String.valueOf(noGravY);
             
             float noGravZ = (zAccel - GRAVITY[ACCEL_Z]);
             float noNoiseZ = (Math.abs(noGravZ) < noise) ? 0.0f : noGravZ;
-	        nextLine[RAW_ACCEL_Z_INDEX] = String.valueOf(noNoiseZ);
+	        nextLine[RAW_ACCEL_Z_INDEX] = USE_NOISE_FILTERING ? String.valueOf(noNoiseZ) : String.valueOf(noGravZ);
 	        
 	        if (nextLine.length > (RAW_ACTIVITY_INDEX + 1)) {
 		        String[] activityNameComponents = nextLine[RAW_ACTIVITY_INDEX].split(":");
