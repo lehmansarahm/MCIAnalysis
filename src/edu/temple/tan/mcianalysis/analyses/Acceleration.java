@@ -54,11 +54,11 @@ public class Acceleration implements Analysis {
         String accelFilepath = path_to_csv.concat(Constants.FOLDER_NAME_ACCELERATION);
         String startingAccelFilepath = path_to_csv.concat(Constants.FOLDER_NAME_STARTING_ACCELERATION);
         startingAccelFilepath = 
-        		startingAccelFilepath.concat("/".concat(desired_filename.concat("_" 
+        		startingAccelFilepath.concat("/".concat(desired_filename.concat(Constants.DELIMITER_FILENAME 
         				+ Constants.ANALYSIS_STARTING_ACCELERATION + ".csv")));
 
         accelFilepath = 
-        		accelFilepath.concat("/".concat(desired_filename.concat("_" 
+        		accelFilepath.concat("/".concat(desired_filename.concat(Constants.DELIMITER_FILENAME 
         				+ Constants.ANALYSIS_ACCELERATION + ".csv")));
 
         try (CSVWriter activity_csv_writer = new CSVWriter(new FileWriter(accelFilepath)); 

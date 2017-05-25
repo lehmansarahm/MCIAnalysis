@@ -38,21 +38,33 @@ public class ToolkitUtils {
      */
     public static String initializeAnalysisOutputDirs(String localFilePath, String userID, 
 	  String analysisName) {
-        String[] pathComponents = localFilePath.split("/");
+        String[] pathComponents = localFilePath.split(Constants.DELIMITER_FILEPATH);
         String finalFilename = pathComponents[pathComponents.length - 1];
         String absolutePath = new File("").getAbsolutePath();
         
         absolutePath = absolutePath.concat(Constants.FOLDER_NAME_FINAL);
         new File(absolutePath).mkdirs();
         
-        absolutePath = absolutePath.concat("/" + analysisName);
+        absolutePath = absolutePath.concat(Constants.DELIMITER_FILEPATH + analysisName);
         new File(absolutePath).mkdirs();
 
-        absolutePath = absolutePath.concat("/".concat(userID));
+        absolutePath = absolutePath.concat(Constants.DELIMITER_FILEPATH.concat(userID));
         new File(absolutePath).mkdirs();
 
-        absolutePath = absolutePath.concat(("/" + analysisName + "_").concat(finalFilename));
+        absolutePath = absolutePath.concat((Constants.DELIMITER_FILEPATH 
+        		+ analysisName + Constants.DELIMITER_FILENAME).concat(finalFilename));
         return absolutePath;
+    }
+    
+	/**
+	 * 
+	 * @param filename
+	 * @return
+	 */
+    public static String getActivityNameFromOutputFile(String filename) {
+        String[] nameComponents = filename.split(Constants.DELIMITER_FILENAME);
+        String activityName = nameComponents[nameComponents.length - 2];
+    	return activityName;
     }
 
     /**
@@ -72,6 +84,26 @@ public class ToolkitUtils {
     		}
     	}
         return isNumeric;  
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static String[] getHeaderLine() {
+        String[] headerLine = new String[] {
+        		Constants.DATA_COLUMN_TIME,
+        		Constants.DATA_COLUMN_RECORD_NO,
+        		Constants.DATA_COLUMN_AZIMUTH,
+        		Constants.DATA_COLUMN_PITCH,
+        		Constants.DATA_COLUMN_ROLL,
+        		Constants.DATA_COLUMN_ACCEL_X,
+        		Constants.DATA_COLUMN_ACCEL_Y,
+        		Constants.DATA_COLUMN_ACCEL_Z,
+        		Constants.DATA_COLUMN_START_END,
+        		Constants.DATA_COLUMN_ACTIVITY
+        };
+        return headerLine;
     }
     
 }

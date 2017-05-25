@@ -6,6 +6,7 @@ import com.opencsv.CSVWriter;
 import edu.temple.tan.mcianalysis.utils.Constants;
 import edu.temple.tan.mcianalysis.utils.Constants.PAUSE_AGGREGATE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.Constants.PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER;
+import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -66,8 +67,7 @@ public class PauseAggregate {
                 //loop through the inner directory
                 for (int j = 0; j < innerFiles.length; j++) {
                     if (!innerFiles[j].getName().equals(aggregateFileName)) {
-                        String[] fileNameComponents = innerFiles[j].getName().split("_");
-                        String taskName = (fileNameComponents.length >= 3) ? fileNameComponents[3] : "";
+                        String taskName = ToolkitUtils.getActivityNameFromOutputFile(innerFiles[j].getName());
                         
                         String filePath = innerFiles[j].getAbsolutePath();
                         CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);

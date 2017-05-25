@@ -12,7 +12,6 @@ import com.opencsv.CSVWriter;
 import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +40,7 @@ public class AccelerationProcessing {
      * @return
      * @throws IOException
      */
-    public static CSVReader convertToLinearAcceleration(CSVReader inputReader, String inputFileName) throws IOException {
+    public static String convertToLinearAcceleration(CSVReader inputReader, String inputFileName) throws IOException {
         String linearOutputDir = (new File("").getAbsolutePath()).concat(Constants.FOLDER_NAME_LINEAR);
         new File(linearOutputDir).mkdirs();
         
@@ -82,8 +81,7 @@ public class AccelerationProcessing {
         }
         
         writer.close();
-        CSVReader linearReader = new CSVReader(new FileReader(newFilePath), ',', '"', 0);
-        return linearReader;
+        return newFilePath;
     }
 
     /**
@@ -121,8 +119,8 @@ public class AccelerationProcessing {
             float noNoiseZ = (Math.abs(noGravZ) < noise) ? 0.0f : noGravZ;
 	        nextLine[RAW_ACCEL_Z_INDEX] = USE_NOISE_FILTERING ? String.valueOf(noNoiseZ) : String.valueOf(noGravZ);
 	        
-	        if (nextLine.length > (RAW_ACTIVITY_INDEX + 1)) {
-		        String[] activityNameComponents = nextLine[RAW_ACTIVITY_INDEX].split(":");
+	        if (nextLine.length >= (RAW_ACTIVITY_INDEX + 1)) {
+		        String[] activityNameComponents = nextLine[RAW_ACTIVITY_INDEX].split(Constants.DELIMITER_TIMESTAMP);
 		        String activityName = activityNameComponents[activityNameComponents.length - 1];
 		        nextLine[RAW_ACTIVITY_INDEX] = activityName.replaceAll("[^\\dA-Za-z ]", "");
 	        }

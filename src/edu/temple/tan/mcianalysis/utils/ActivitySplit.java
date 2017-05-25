@@ -33,13 +33,8 @@ public class ActivitySplit {
     												String requestedActivityName) throws IOException {
         String timeStamp = getTimeStamp();
         MCIAnalysis.requestedActivitySet.add(requestedActivityName);
-
-        //----------------------------------------------------------------------
-        // The new CSV file name will be the user id, activity, and time stamp
-        //----------------------------------------------------------------------
-        String intermFilePath = getIntermFilePath(userID, null, requestedActivityName, timeStamp);
-        CSVWriter writer = new CSVWriter(new FileWriter(intermFilePath));
-        writer.writeNext(getHeaderLine());
+        List<String[]> writerContents = new ArrayList<String[]>();
+        writerContents.add(ToolkitUtils.getHeaderLine());
 
         //----------------------------------------------------------------------
         // If the line belongs to the requested activity, it is written to the 
@@ -47,20 +42,25 @@ public class ActivitySplit {
         //----------------------------------------------------------------------
         String[] nextLine;
         while ((nextLine = reader.readNext()) != null) {
-            if (nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()].equals(requestedActivityName)) {
-                writer.writeNext(nextLine);
+        	String currentActivity = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()].trim();
+            if (currentActivity.equalsIgnoreCase(requestedActivityName)) {
+            	writerContents.add(nextLine);
             }
         }
 
         //----------------------------------------------------------------------
-        // close the CSV writer
+        // The new CSV file name will be the user id, activity, and time stamp
         //----------------------------------------------------------------------
+        String intermFilePath = getIntermFilePath(userID, null, requestedActivityName, timeStamp);
+        CSVWriter writer = new CSVWriter(new FileWriter(intermFilePath));
+        writer.writeAll(writerContents);
         writer.close();
-        reader.close();
 
         //----------------------------------------------------------------------
         // return the path to the new intermediate file
         //----------------------------------------------------------------------
+        Logger.getLogger(ActivitySplit.class.getName()).log(Level.INFO, 
+        		"Finished processing intermediate input file: " + intermFilePath, "");
         return intermFilePath;
     }
 
@@ -76,7 +76,7 @@ public class ActivitySplit {
         		"Splitting interm activities for user: " + userID, "");
     	
         List<String> intermFilePaths = new ArrayList<String>();
-        String[] headerLine = getHeaderLine();
+        String[] headerLine = ToolkitUtils.getHeaderLine();
         String timeStamp = getTimeStamp();
         String intermFilePath = null;
         
@@ -181,33 +181,15 @@ public class ActivitySplit {
         new File(absolutePath.concat(Constants.FOLDER_NAME_INTERMEDIATE)).mkdirs();
         
         String intermFileName = Constants.FOLDER_NAME_INTERMEDIATE + "/" + userID 
-        		+ (accelProcessing != null ? "_" + accelProcessing : "")
-        		+ "_" + requestedActivityName.replace(" ", "_") + "_" + timeStamp + ".csv";
+        		+ (accelProcessing != null ? Constants.DELIMITER_FILENAME + accelProcessing : "")
+        		+ Constants.DELIMITER_FILENAME 
+        		+ requestedActivityName.replace(" ", Constants.DELIMITER_SPACE) 
+        		+ Constants.DELIMITER_FILENAME + timeStamp + ".csv";
         String intermFilePath = absolutePath.concat(intermFileName);
 
 		Logger.getLogger(ActivitySplit.class.getName()).log(Level.INFO, 
         		"New interm file path generated for activity: " + requestedActivityName, "");
         return intermFilePath;
-    }
-    
-    /**
-     * 
-     * @return
-     */
-    private static String[] getHeaderLine() {
-        String[] headerLine = new String[] {
-        		Constants.DATA_COLUMN_TIME,
-        		Constants.DATA_COLUMN_RECORD_NO,
-        		Constants.DATA_COLUMN_AZIMUTH,
-        		Constants.DATA_COLUMN_PITCH,
-        		Constants.DATA_COLUMN_ROLL,
-        		Constants.DATA_COLUMN_ACCEL_X,
-        		Constants.DATA_COLUMN_ACCEL_Y,
-        		Constants.DATA_COLUMN_ACCEL_Z,
-        		Constants.DATA_COLUMN_START_END,
-        		Constants.DATA_COLUMN_ACTIVITY
-        };
-        return headerLine;
     }
     
     /**

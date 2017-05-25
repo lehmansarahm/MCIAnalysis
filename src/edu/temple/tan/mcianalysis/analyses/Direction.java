@@ -365,7 +365,7 @@ public class Direction implements Analysis {
         absolute_path = absolute_path.concat("/".concat(user_id));
         new File(absolute_path).mkdirs();
 
-        absolute_path = absolute_path.concat((Constants.FOLDER_NAME_DIRECTION + "_").concat(desired_filename));
+        absolute_path = absolute_path.concat((Constants.FOLDER_NAME_DIRECTION + Constants.DELIMITER_FILENAME).concat(desired_filename));
 
         return absolute_path;
     }

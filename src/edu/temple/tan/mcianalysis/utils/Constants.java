@@ -9,7 +9,13 @@ public class Constants {
     public static final String ANALYSIS_NAMESPACE = "edu.temple.tan.mcianalysis.analyses.";
     public static final String SIMPLE_TIME_FORMAT_LONG = "HH:mm:ss.SSS";
     public static final String SIMPLE_TIME_FORMAT_SHORT = "HH:mm:ss";
-    public static final String SIMPLE_DATE_TIME_FORMAT = "yyyyMMdd_HHmm";
+    public static final String SIMPLE_DATE_TIME_FORMAT = "yyyyMMdd-HHmm";
+
+    public static final String DELIMITER_FILENAME = "_";
+    public static final String DELIMITER_FILEPATH = "/";
+    public static final String DELIMITER_PARAMETER = ",";
+    public static final String DELIMITER_SPACE = "-";
+    public static final String DELIMITER_TIMESTAMP = ":";
     
     public static final String CONFIG_FILE = "configuration.txt";
     public static final String ERROR_LOG = "Errors.txt";

@@ -11,8 +11,8 @@ import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -61,23 +61,27 @@ public class TaskTime implements Analysis {
         
         long durationInMS = 0;
         Date startTime = null, endTime = null;
-        try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_LONG);
-            startTime = dateFormat.parse(readerContents.get(1)[0]);
-            endTime = dateFormat.parse(readerContents.get(readerContents.size() - 1)[0]);
-        } catch (ParseException ex) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_SHORT);
-            startTime = dateFormat.parse(readerContents.get(1)[0]);
-            endTime = dateFormat.parse(readerContents.get(readerContents.size() - 1)[0]);
-        } finally {
-            durationInMS = endTime.getTime() - startTime.getTime();
+        if (readerContents.size() > 1) {
+	        try {
+	            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_LONG);
+	            startTime = dateFormat.parse(readerContents.get(1)[0]);
+	            endTime = dateFormat.parse(readerContents.get(readerContents.size() - 1)[0]);
+	        } catch (ParseException ex) {
+	            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_SHORT);
+	            startTime = dateFormat.parse(readerContents.get(1)[0]);
+	            endTime = dateFormat.parse(readerContents.get(readerContents.size() - 1)[0]);
+	        }
         }
-        
-        double taskTimeInSec = (((double)durationInMS) / 1000.0);
-        double durationInSec = (((taskTimeInSec == Math.floor(taskTimeInSec)) && !Double.isInfinite(taskTimeInSec))) 
-        		? ((Constants.SAMPLING_PERIOD * (readerContents.size() - 1)) / 1000.0) : taskTimeInSec;
 
-        updateTaskTime(filePath, durationInSec, userID);
+        if (endTime != null && startTime != null) {
+        	durationInMS = endTime.getTime() - startTime.getTime();
+        	
+            double taskTimeInSec = (((double)durationInMS) / 1000.0);
+            double durationInSec = (((taskTimeInSec == Math.floor(taskTimeInSec)) && !Double.isInfinite(taskTimeInSec))) 
+            		? ((Constants.SAMPLING_PERIOD * (readerContents.size() - 1)) / 1000.0) : taskTimeInSec;
+
+            updateTaskTime(filePath, durationInSec, userID);
+        }
     }
 
     /**
@@ -90,7 +94,7 @@ public class TaskTime implements Analysis {
      */
     private void updateTaskTime(String filePath, double taskDurInSec, String userID) 
     							throws FileNotFoundException, IOException {
-        String csvFilePath = initialFileSetup(filePath, userID);
+        String csvFilePath = ToolkitUtils.initializeAnalysisOutputDirs(filePath, userID, "TaskTime");
         List<String[]> fileContents = new ArrayList<String[]>();
         
         double totalSec = 0, avgSec = 0;
@@ -134,57 +138,7 @@ public class TaskTime implements Analysis {
         writer.writeAll(fileContents);
         writer.close();
         
-		/*new_line = new String[2];
-		total_line = new String[6];
-		
-		new_line[0] = "User ID:";
-		new_line[1] = "Task Time (Seconds):";
-		writer.writeNext(new_line);
-		
-		new_line[0] = userID;
-		new_line[1] = String.valueOf(taskDurInSec);
-		writer.writeNext(new_line);
-		
-		total_line[0] = "Total Task Time:";
-		total_line[1] = String.valueOf(taskDurInSec);
-		total_line[2] = "Average Task Time:";
-		total_line[3] = String.valueOf(taskDurInSec);
-		total_line[4] = "Task Time Sample Standard Deviation:";
-		total_line[5] = "0";
-		
-		writer.writeNext(total_line);
-		    
-		writer.close();*/
-        
         MCIAnalysis.taskTimeUtilized = true;
-    }
-
-    /**
-     * The initialFileSetup method is responsible for ensuring the proper
-     * directories are setup and that the CSVWriter has a valid and clear filename
-     * to write to.
-     * 
-     * @param filePath
-     * @param userID
-     * @return
-     */
-    private String initialFileSetup(String filePath, String userID) {
-        String[] pathComponents = filePath.split("/");
-        String targetFileName = pathComponents[pathComponents.length - 1];
-        
-        String absolutePath = new File("").getAbsolutePath();
-        absolutePath = absolutePath.concat(Constants.FOLDER_NAME_FINAL);
-        new File(absolutePath).mkdirs();
-        
-        absolutePath = absolutePath.concat(Constants.FOLDER_NAME_TASK_TIME);
-        new File(absolutePath).mkdirs();
-        
-        absolutePath = absolutePath.concat("/" + userID);
-        new File(absolutePath).mkdirs();
-        
-        absolutePath = absolutePath.concat("/");
-        absolutePath = absolutePath.concat(targetFileName);
-        return absolutePath;
     }
 
 }

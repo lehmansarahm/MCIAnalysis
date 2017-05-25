@@ -122,6 +122,7 @@ public class PauseCount extends PauseBase implements Analysis {
 	    		}
     		}
     	}
+    	
     	reader.close();
 
     	// Finalize the output file and update toolkit state

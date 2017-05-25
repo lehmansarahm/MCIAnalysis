@@ -51,7 +51,7 @@ public class MCIAnalysis {
      * 
      * @param args the command line arguments, none currently accepted
      */
-    @SuppressWarnings({ "resource", "unchecked" })
+    @SuppressWarnings({ "unchecked" })
 	public static void main(String[] args) throws FileNotFoundException, IOException, 
     	ClassNotFoundException, NoSuchMethodException, IllegalAccessException, 
     	IllegalArgumentException, InvocationTargetException, InstantiationException {
@@ -61,11 +61,10 @@ public class MCIAnalysis {
     	
         List<ConfigCommand> commands = ConfigInterpreter.loadNewCommands();
         String filePath = new File("").getAbsolutePath();
-        List<String> csvActivityList = new ArrayList<String>();
 
         for (ConfigCommand command : commands) {
-        	String[] userIDList = command.getUsername().split(",");
-            String[] rawFilenameList = command.getSourceFile().split(",");
+        	String[] userIDList = command.getUsername().split(Constants.DELIMITER_PARAMETER);
+            String[] rawFilenameList = command.getSourceFile().split(Constants.DELIMITER_PARAMETER);
             
             if (rawFilenameList.length == 1) {
             	List<String> inputFiles = new ArrayList<>();
@@ -107,36 +106,45 @@ public class MCIAnalysis {
                 	//System.out.println("Parsed userID: " + userID);
 
             		String rawFilename = getFilename(userID, rawFilenameList);
-                    String targetFile = filePath.concat(rawFilename);
+                    String targetFilePath = filePath.concat(rawFilename);
                 	//System.out.println("Parsed targetFile: " + targetFile);
-                    
-                    String targetActivity = command.getTaskName();
-                	//System.out.println("Parsed targetActivity: " + targetActivity);
                 	
-                    int acceleration_process = command.getAccelProcess();
+                    int accelerationProcess = command.getAccelProcess();
                 	//System.out.println("Parsed acceleration_process: " + 
                 	//		((acceleration_process == 0) ? "raw" : "linear"));
 
                     // CSVReader reader is one of two arguments to be passed to the
                     // analysis methods, to be populated based on accel. processing selection
-                    CSVReader reader = new CSVReader(new FileReader(targetFile), ',', '"', 0);
-                    switch (acceleration_process) {
+                    switch (accelerationProcess) {
                         case 0:
                             accelerationProcessing = "Raw";
                             break;
                         case 1:
                             accelerationProcessing = "Linear";
-        	                reader = AccelerationProcessing.convertToLinearAcceleration(reader, rawFilename);
+                            CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
+        	                targetFilePath = AccelerationProcessing.convertToLinearAcceleration(reader, rawFilename);
         	                break;
                         default:
                             break;
                     }
+
+                	String rawTargetActivity = command.getTaskName();
+                	//System.out.println("Parsed raw targetActivity: " + rawTargetActivity);
                     
                     // Split out activity list based on user selection
-                    if (!targetActivity.equalsIgnoreCase("All")) {
-                        csvActivityList.add(ActivitySplit.generateActivitySpecificCSV(reader, userID, targetActivity));
+                    List<String> csvActivityList = new ArrayList<String>();
+                    if (!rawTargetActivity.equalsIgnoreCase("All")) {
+                        String[] targetActivities = rawTargetActivity.split(Constants.DELIMITER_PARAMETER);
+                        for (String targetActivity : targetActivities) {
+                            CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
+                            String intermFilePath = ActivitySplit.generateActivitySpecificCSV(reader, userID, targetActivity.trim());
+                            if (intermFilePath != null) csvActivityList.add(intermFilePath);
+                        	reader.close();
+                        }
                     } else {
+                        CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
                         csvActivityList = ActivitySplit.generateCSVForAllActivities(reader, userID);
+                        reader.close();
                     }
 
                     // Iterate through analysis operations provided in config file
@@ -162,7 +170,7 @@ public class MCIAnalysis {
                     
                     // Clear out the activity list for this command set, and progress to the next
                     Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
-                    		"Finished processing input file: " + targetFile + " for user: " + userID, "");
+                    		"Finished processing input file: " + targetFilePath + " for user: " + userID, "");
                     csvActivityList.clear();
             	}
             }
@@ -205,21 +213,21 @@ public class MCIAnalysis {
     private static void removeOldArtifacts() {
         String absolute_path = new File("").getAbsolutePath();
         
-        File folder = new File(absolute_path.concat("/Final"));
+        File folder = new File(absolute_path.concat(Constants.FOLDER_NAME_FINAL));
         try {
 			FileUtils.deleteDirectory(folder);
 		} catch (IOException e) {
 			// do nothing ... can't delete it if it wasn't there
 		}
         
-        folder = new File(absolute_path.concat("/Intermediate"));
+        folder = new File(absolute_path.concat(Constants.FOLDER_NAME_INTERMEDIATE));
         try {
 			FileUtils.deleteDirectory(folder);
 		} catch (IOException e) {
 			// do nothing ... can't delete it if it wasn't there
 		}
         
-        folder = new File(absolute_path.concat("/Linear"));
+        folder = new File(absolute_path.concat(Constants.FOLDER_NAME_LINEAR));
         try {
 			FileUtils.deleteDirectory(folder);
 		} catch (IOException e) {

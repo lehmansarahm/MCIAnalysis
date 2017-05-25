@@ -1,5 +1,7 @@
 package edu.temple.tan.mcianalysis.config;
 
+import edu.temple.tan.mcianalysis.utils.Constants;
+
 /**
  * 
  * @author Sarah M. Lehman
@@ -14,7 +16,7 @@ public class AnalysisCommand {
 	 * @param input
 	 */
 	public AnalysisCommand(String input) {
-		String[] inputs = input.split(":");
+		String[] inputs = input.split(Constants.DELIMITER_TIMESTAMP);
 		this.operationName = inputs[0];
 		this.param1 = (inputs.length >= 2) ? inputs[1] : null;
 		this.param2 = (inputs.length >= 3) ? inputs[2] : null;
