@@ -74,7 +74,7 @@ public class UserAggregate {
                         			} else newSummaryOutput.add(newOutput); 
                         		}
                 				matchedTasks.add(taskName);
-                			} else newSummaryOutput.add("-1");
+                			} else newSummaryOutput.add(Constants.DELIMITER_ACTIVITY_NOT_FOUND);
         				}
             		}
             		
@@ -92,7 +92,7 @@ public class UserAggregate {
             					
             					// print -1 for all previous and actual output for current
             					for (int k = 2; k < output.size(); k++) {
-            						output.get(k).addLast("-1");
+            						output.get(k).addLast(Constants.DELIMITER_ACTIVITY_NOT_FOUND);
             					}
             					newSummaryOutput.addLast(summarySubtaskOutput.get(j));
             				}

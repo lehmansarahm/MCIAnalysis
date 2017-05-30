@@ -16,6 +16,7 @@ public class Constants {
     public static final String DELIMITER_PARAMETER = ",";
     public static final String DELIMITER_SPACE = "-";
     public static final String DELIMITER_TIMESTAMP = ":";
+    public static final String DELIMITER_ACTIVITY_NOT_FOUND = "-1";
     
     public static final String CONFIG_FILE = "configuration.txt";
     public static final String ERROR_LOG = "Errors.txt";
@@ -66,6 +67,12 @@ public class Constants {
     public static final String FOLDER_NAME_STARTING_ACCELERATION = ("/" + ANALYSIS_STARTING_ACCELERATION);
     public static final String FOLDER_NAME_TASK_TIME = ("/" + ANALYSIS_TASK_TIME);
 
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    //						AGGREGATE FILES
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+
     public static final String AGGREGATE_FILE_DIRECTION = "TaskDirections.csv";
     public static final String AGGREGATE_FILE_PAUSE_COUNT = "TaskPauseCount.csv";
     public static final String AGGREGATE_FILE_PAUSE_DURATION = "TaskPauseDuration.csv";
@@ -78,6 +85,12 @@ public class Constants {
 		AGGREGATE_FILE_PAUSE_DURATION, 
 		AGGREGATE_FILE_TASK_TIME
 	);
+
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    //						CONFIG FILES
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
     
     public static enum CONFIG_FILE_COLUMN_ORDER {
     	USERNAME,
@@ -92,7 +105,13 @@ public class Constants {
     	PARAM1,
     	PARAM2
     }
-	
+
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    //						PAUSE ANALYSIS
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    
 	public static enum PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER { 
 		START_TIME, 
 		START_NUM, 
@@ -116,18 +135,62 @@ public class Constants {
 		TOTAL_TIME_PAUSED,
 		AVG_PAUSE_DURATION
 	}
+
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    //						SUDDEN MOVEMENT ANALYSIS
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    public static enum SUDDEN_MOVEMENT_OUTPUT_FILE_CONTENT_COLUMN_ORDER { 
+		DIRECTION_CHANGE_TIME, 
+		AXIS_1_STARTING_ACCEL, 
+		AXIS_1_NEXT_ACCEL, 
+		AXIS_1_ACCEL_DELTA, 
+		AXIS_2_STARTING_ACCEL, 
+		AXIS_2_NEXT_ACCEL, 
+		AXIS_2_ACCEL_DELTA
+	};
+	
+	public static enum SUDDEN_MOVEMENT_OUTPUT_FILE_TOTALS_COLUMN_ORDER { 
+		NUMBER_OF_DIRECTION_CHANGES_LABEL,
+		NUMBER_OF_DIRECTION_CHANGES_VALUE,
+		AXIS_1_AVERAGE_ACCEL_CHANGE_LABEL,
+		AXIS_1_AVERAGE_ACCEL_CHANGE_VALUE,
+		AXIS_2_AVERAGE_ACCEL_CHANGE_LABEL,
+		AXIS_2_AVERAGE_ACCEL_CHANGE_VALUE
+	};
+	
+	public static enum SUDDEN_MOVEMENT_AGGREGATE_COLUMN_ORDER {
+		TASK,
+		NUMBER_OF_DIRECTION_CHANGES,
+		AXIS_1_AVERAGE_ACCEL_CHANGE,
+		AXIS_2_AVERAGE_ACCEL_CHANGE
+	}
+
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    //						TASK TIME ANALYSIS
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
 	
 	public static enum TASK_TIME_AGGREGATE_COLUMN_ORDER {
 		TASK,
 		TIME_IN_SEC
 	}
+
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    //						USER COMPARISON
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
 	
 	public static enum USER_AGGREGATE_COLUMN_ORDER {
 		USER_NAME,
 		TOTAL_TRIAL_TIME,
 		TOTAL_PAUSE_COUNT,
 		DISTINCT_PAUSE_COUNT,
-		TOTAL_PAUSE_TIME
+		TOTAL_PAUSE_TIME,
+		TOTAL_DIRECTION_CHANGES
 	}
 	
 	public static enum USER_AGGREGATE_SUBTASK_COLUMN_ORDER {

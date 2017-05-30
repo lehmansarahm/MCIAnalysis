@@ -181,7 +181,7 @@ public class MCIAnalysis {
 		if (directionUtilized) DirectionAggregate.aggregateDirectionCSV();
 		if (pauseUtilized) PauseAggregate.aggregatePauseCSV();
 		if (taskTimeUtilized) TimeAggregate.aggregateTimeCSV();
-		if (pauseUtilized && taskTimeUtilized) UserAggregate.aggregateUserResultsCSV();
+		if (taskTimeUtilized && (pauseUtilized || directionUtilized)) UserAggregate.aggregateUserResultsCSV();
 	}
     
     /**

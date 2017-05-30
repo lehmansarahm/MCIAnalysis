@@ -1,7 +1,6 @@
 package edu.temple.tan.mcianalysis.aggregates;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -9,15 +8,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import edu.temple.tan.mcianalysis.MCIAnalysis;
 import edu.temple.tan.mcianalysis.utils.Constants;
 
 public class UserSummary {
 
 	private String userName;
 	private double totalTrialTimeSec = 0.0;
+	
 	private int totalPauseCount = 0;
 	private int distinctPauseCount = 0;
 	private double totalPauseTimeSec = 0.0;
+	
+	private int totalDirectionChanges = 0;
+	
+	private static final boolean INCLUDE_PAUSE_DATA = MCIAnalysis.pauseUtilized;
+	private static final boolean INCLUDE_SUDDEN_MOTION_DATA = MCIAnalysis.directionUtilized;
 	private Map<String, SubtaskResult> subtasks = new HashMap<String, SubtaskResult>();
 	
 	/**
@@ -32,19 +38,42 @@ public class UserSummary {
 	 * 
 	 * @return
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public LinkedList<String> getFirstHeaderLine() {
-    	return (new LinkedList(Arrays.asList("", "", "", "", "")));
+		LinkedList<String> firstHeaderLine = new LinkedList<String>();
+		firstHeaderLine.add("");
+		firstHeaderLine.add("");
+		
+		if (INCLUDE_PAUSE_DATA) {
+			firstHeaderLine.add("");
+			firstHeaderLine.add("");
+			firstHeaderLine.add("");
+		}
+		if (INCLUDE_SUDDEN_MOTION_DATA) {
+			firstHeaderLine.add("");
+		}
+
+		return firstHeaderLine;
 	}
 	
 	/**
 	 * 
 	 * @return
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public LinkedList<String> getSecondHeaderLine() {
-    	return (new LinkedList(Arrays.asList("User Name:", "Total Trial Time (s)", 
-				"Total Pause Count", "Distinct Pause Count", "Total Time Paused (s)")));
+		LinkedList<String> secondHeaderLine = new LinkedList<String>();
+		secondHeaderLine.add("User Name");
+		secondHeaderLine.add("Total Trial Time (s)");
+		
+		if (INCLUDE_PAUSE_DATA) {
+			secondHeaderLine.add("Total Pause Count");
+			secondHeaderLine.add("Distinct Pause Count");
+			secondHeaderLine.add("Total Time Paused (s)");
+		}
+		if (INCLUDE_SUDDEN_MOTION_DATA) {
+			secondHeaderLine.add("Total Direction Change Count");
+		}
+
+		return secondHeaderLine;
 	}
 	
 	/**
@@ -53,7 +82,7 @@ public class UserSummary {
 	 * @param summaryLine
 	 */
 	public void addAggregateSummary(String analysis, String[] summaryLine) {
-		String[] subtaskComponents = summaryLine[0].split(":");
+		String[] subtaskComponents = summaryLine[0].split(Constants.DELIMITER_TIMESTAMP);
 		String taskName = subtaskComponents[subtaskComponents.length - 1];
 		addSubtask(taskName);
 		
@@ -75,6 +104,17 @@ public class UserSummary {
 			double subtaskTotalPauseTime = 
 				Double.parseDouble(summaryLine[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.TOTAL_TIME_PAUSED.ordinal()]);
 			str.addToTotalPauseTime(subtaskTotalPauseTime);
+			break;
+		case Constants.ANALYSIS_DIRECTION:
+			int directionChanges = 
+				Integer.parseInt(summaryLine[Constants.SUDDEN_MOVEMENT_AGGREGATE_COLUMN_ORDER.NUMBER_OF_DIRECTION_CHANGES.ordinal()]);
+			str.addToTotalDirectionChanges(directionChanges);
+			double axis1AvgChange = 
+				Double.parseDouble(summaryLine[Constants.SUDDEN_MOVEMENT_AGGREGATE_COLUMN_ORDER.AXIS_1_AVERAGE_ACCEL_CHANGE.ordinal()]);
+			str.setAxis1AvgChange(axis1AvgChange);
+			double axis2AvgChange = 
+				Double.parseDouble(summaryLine[Constants.SUDDEN_MOVEMENT_AGGREGATE_COLUMN_ORDER.AXIS_2_AVERAGE_ACCEL_CHANGE.ordinal()]);
+			str.setAxis2AvgChange(axis2AvgChange);
 			break;
 		case Constants.ANALYSIS_TASK_TIME:
 			double subtaskTimeSec = 
@@ -121,35 +161,71 @@ public class UserSummary {
 	        subtaskOutput.add(Double.toString(str.getCompletionTime()));
 	        totalTrialTimeSec += str.getCompletionTime();
 
-	        // subtask column 2
-	        headersLine1.add(subtaskName);
-	        headersLine2.add("Total Pause Count");
-	        subtaskOutput.add(Integer.toString(str.getTotalPauseCount()));
-	        totalPauseCount += str.getTotalPauseCount();
+	        if (INCLUDE_PAUSE_DATA) {
+		        // subtask column 2
+		        headersLine1.add(subtaskName);
+		        headersLine2.add("Total Pause Count");
+		        subtaskOutput.add(Integer.toString(str.getTotalPauseCount()));
+		        totalPauseCount += str.getTotalPauseCount();
 
-	        // subtask column 3
-	        headersLine1.add(subtaskName);
-	        headersLine2.add("Distinct Pause Count");
-	        subtaskOutput.add(Integer.toString(str.getDistinctPauseCount()));
-	        distinctPauseCount += str.getDistinctPauseCount();
+		        // subtask column 3
+		        headersLine1.add(subtaskName);
+		        headersLine2.add("Distinct Pause Count");
+		        subtaskOutput.add(Integer.toString(str.getDistinctPauseCount()));
+		        distinctPauseCount += str.getDistinctPauseCount();
 
-	        // subtask column 4
-	        headersLine1.add(subtaskName);
-	        headersLine2.add("Total Time Paused (s)");
-	        double pauseTimeSec = (str.getTotalPauseTime() / 1000.0);
-	        subtaskOutput.add(Double.toString(pauseTimeSec));
-	        totalPauseTimeSec += pauseTimeSec;
+		        // subtask column 4
+		        headersLine1.add(subtaskName);
+		        headersLine2.add("Total Time Paused (s)");
+		        double pauseTimeSec = (str.getTotalPauseTime() / 1000.0);
+		        subtaskOutput.add(Double.toString(pauseTimeSec));
+		        totalPauseTimeSec += pauseTimeSec;
+	        }
+	        if (INCLUDE_SUDDEN_MOTION_DATA) {
+		        // subtask column 2
+		        headersLine1.add(subtaskName);
+		        headersLine2.add("Total Direction Changes");
+		        subtaskOutput.add(Integer.toString(str.getTotalDirectionChanges()));
+		        totalDirectionChanges += str.getTotalDirectionChanges();
+
+		        // subtask column 3
+		        headersLine1.add(subtaskName);
+		        headersLine2.add("Axis 1 Avg Change");
+		        subtaskOutput.add(Double.toString(str.getAxis1AvgChange()));
+
+		        // subtask column 4
+		        headersLine1.add(subtaskName);
+		        headersLine2.add("Axis 2 Avg Change");
+		        subtaskOutput.add(Double.toString(str.getAxis2AvgChange()));
+	        }
 	        
 	        // avoid concurrent modification
 	        it.remove();
 	    }
 	    
 	    // write the totals
-	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.USER_NAME.ordinal(), userName);
-	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.TOTAL_TRIAL_TIME.ordinal(), Double.toString(totalTrialTimeSec));
-	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.TOTAL_PAUSE_COUNT.ordinal(), Integer.toString(totalPauseCount));
-	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.DISTINCT_PAUSE_COUNT.ordinal(), Integer.toString(distinctPauseCount));
-	    subtaskOutput.add(Constants.USER_AGGREGATE_COLUMN_ORDER.TOTAL_PAUSE_TIME.ordinal(), Double.toString(totalPauseTimeSec));
+	    int summaryIndexCount = 0;
+	    subtaskOutput.add(summaryIndexCount, userName);
+	    summaryIndexCount++;
+	    
+	    subtaskOutput.add(summaryIndexCount, Double.toString(totalTrialTimeSec));
+	    summaryIndexCount++;
+	    
+	    if (INCLUDE_PAUSE_DATA) {
+		    subtaskOutput.add(summaryIndexCount, Integer.toString(totalPauseCount));
+		    summaryIndexCount++;
+		    
+		    subtaskOutput.add(summaryIndexCount, Integer.toString(distinctPauseCount));
+		    summaryIndexCount++;
+		    
+		    subtaskOutput.add(summaryIndexCount, Double.toString(totalPauseTimeSec));
+		    summaryIndexCount++;
+		    
+	    }
+	    if (INCLUDE_SUDDEN_MOTION_DATA) {
+		    subtaskOutput.add(summaryIndexCount, Integer.toString(totalDirectionChanges));
+		    summaryIndexCount++;
+	    }
 	    
 	    // stitch it all together
 	    List<LinkedList<String>> finalOutput = new ArrayList<>();
