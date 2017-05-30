@@ -1,8 +1,14 @@
 package edu.temple.tan.mcianalysis.analyses;
 
 import java.io.IOException;
+import java.util.Arrays;
+
+import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
+import edu.temple.tan.mcianalysis.utils.Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER;
+import edu.temple.tan.mcianalysis.utils.Constants.PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 /**
@@ -11,9 +17,21 @@ import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
  * @author Sarah M. Lehman
  */
 public class PauseBase {
-	protected static CSVWriter writer;
-	protected static int totalPauseCount;
-	protected static double totalPauseDuration;
+	
+	protected CSVReader reader;
+	protected CSVWriter writer;
+	
+	protected double pauseThreshold;
+	protected int pauseWindow;
+	protected int totalPauseCount;
+	protected double totalPauseDuration;
+	
+	private boolean currentlyCalibrating = false;
+	private String calibrationStep = "";
+
+	private double calibPauseThreshold = 0.0d;
+	private double calibTotalAccelMag = 0.0d;
+	private int calibRowCount = 0;
 	
 	/**
 	 * 
@@ -40,7 +58,7 @@ public class PauseBase {
 	 * @return
 	 */
 	protected boolean isHeaderLine(String nextLine[]) {
-		String time =  nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
+		String time =  nextLine[INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
 		return (time.equals(Constants.DATA_COLUMN_TIME));
 	}
 	
@@ -49,10 +67,45 @@ public class PauseBase {
 	 * @param nextLine
 	 * @return
 	 */
-	protected double calculateMagnitude(String nextLine[]) {
-		String accelX = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()];
-		String accelY = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()];
-		String accelZ = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()];
+	protected boolean calibrate(String nextLine[]) {
+		boolean calibrationRequired = true;
+		String currentSubtaskStep = nextLine[INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()];
+		
+		if ((calibrationStep.equals(currentSubtaskStep) && currentlyCalibrating) || 
+				(calibrationStep.equals("") && Arrays.asList(Constants.CALIBRATION_STEPS).contains(currentSubtaskStep))) {
+			// we've found a calibration step ... update counts
+			calibrationStep = currentSubtaskStep;
+			currentlyCalibrating = true;
+			calibRowCount++;
+
+			double currAccelX = Double.parseDouble(nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()]);
+			double currAccelY = Double.parseDouble(nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()]);
+			double currAccelZ = Double.parseDouble(nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()]);
+			calibTotalAccelMag += ToolkitUtils.calculateMagnitude(currAccelX, currAccelY, currAccelZ);
+			
+			// Calibrated pause threshold = 10% of average acceleration magnitude
+			calibPauseThreshold = (calibTotalAccelMag / calibRowCount) * Constants.CALIBRATION_PAUSE_THRESHOLD_PERCENTAGE;
+		} else if (currentlyCalibrating) {
+			//Logger.getLogger(PauseBase.class.getName()).log(Level.INFO, 
+	        //		"New pause threshold calibrated!  Updated value: " + calibPauseThreshold, "");
+			
+			pauseThreshold = calibPauseThreshold;
+			currentlyCalibrating = false;
+			calibrationRequired = false;
+		}
+		
+		return calibrationRequired;
+	}
+	
+	/**
+	 * 
+	 * @param nextLine
+	 * @return
+	 */
+	protected static double calculateMagnitude(String nextLine[]) {
+		String accelX = nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()];
+		String accelY = nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()];
+		String accelZ = nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()];
 		return ToolkitUtils.calculateMagnitude(Double.parseDouble(accelX), 
 				Double.parseDouble(accelY), Double.parseDouble(accelZ));
 	}
@@ -69,9 +122,6 @@ public class PauseBase {
      * @param endTime
      * @param endLineNum
      * @param duration
-     * 
-     * @throws IOException
-     * @throws NumberFormatException
      */
 	protected void addToPauseCSV(String startTime, String startLineNum,  String endTime, 
 	  String endLineNum, double duration) {
@@ -97,37 +147,34 @@ public class PauseBase {
      * 
      * @return
      */
-    protected String[] generateNextLine(String startTime, String startLineNum,  String endTime, String endLineNum, 
+    protected static String[] generateNextLine(String startTime, String startLineNum,  String endTime, String endLineNum, 
 	  String duration) {
-        String nextLine[] = new String[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.values().length];
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.START_TIME.ordinal()] = startTime;
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.START_NUM.ordinal()] = startLineNum;
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.END_TIME.ordinal()] = endTime;
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.END_NUM.ordinal()] = endLineNum;
-        nextLine[Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.DURATION.ordinal()] = duration;
+        String nextLine[] = new String[PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.values().length];
+        nextLine[PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.START_TIME.ordinal()] = startTime;
+        nextLine[PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.START_NUM.ordinal()] = startLineNum;
+        nextLine[PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.END_TIME.ordinal()] = endTime;
+        nextLine[PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.END_NUM.ordinal()] = endLineNum;
+        nextLine[PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER.DURATION.ordinal()] = duration;
         return nextLine;
     }
     
     /**
      * Generates the closing content of the pause output file based on the provided parameter values
      * 
-     * @param filePath
-     * @param pauseCount
-     * @param totalPauseDuration
-     * 
      * @throws IOException
      */
     protected void finalizePauseCSV() throws IOException {
     	double averagePauseDuration = (totalPauseCount != 0) ? (totalPauseDuration / totalPauseCount) : 0;
 
-        String totalLine[] = new String[Constants.PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.values().length];
-        totalLine[0] = "Number of Pauses:";
-        totalLine[1] = String.valueOf(totalPauseCount);
-        totalLine[2] = "Total Time Spent Paused:";
-        totalLine[3] = String.valueOf(totalPauseDuration);
-        totalLine[4] = "Average Pause Duration:";
-        totalLine[5] = String.valueOf(averagePauseDuration);
+        String totalLine[] = new String[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.values().length];
+        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.PAUSE_NUM_LABEL.ordinal()] = "Number of Pauses:";
+        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.PAUSE_NUM_VALUE.ordinal()] = String.valueOf(totalPauseCount);
+        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.TOTAL_PAUSE_TIME_LABEL.ordinal()] = "Total Time Spent Paused:";
+        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.TOTAL_PAUSE_TIME_VALUE.ordinal()] = String.valueOf(totalPauseDuration);
+        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.AVG_PAUSE_TIME_LABEL.ordinal()] = "Average Pause Duration:";
+        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.AVG_PAUSE_TIME_VALUE.ordinal()] = String.valueOf(averagePauseDuration);
 
         writer.writeNext(totalLine);
     }
+    
 }

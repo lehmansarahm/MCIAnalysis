@@ -14,6 +14,7 @@ public class Constants {
     public static final String DELIMITER_FILENAME = "_";
     public static final String DELIMITER_FILEPATH = "/";
     public static final String DELIMITER_PARAMETER = ",";
+    public static final String DELIMITER_PARAMETER_ASSIGNMENT = "=";
     public static final String DELIMITER_SPACE = "-";
     public static final String DELIMITER_TIMESTAMP = ":";
     public static final String DELIMITER_ACTIVITY_NOT_FOUND = "-1";
@@ -23,6 +24,12 @@ public class Constants {
     
     public static final String FLAG_START = "start";
     public static final String FLAG_QUIT = "quit";
+
+    public static final double CALIBRATION_PAUSE_THRESHOLD_PERCENTAGE = 0.2d;
+    public static final double CALIBRATION_SUDDEN_MOTION_THRESHOLD_PERCENTAGE = 0.9d;
+    public static final String[] CALIBRATION_STEPS = new String[] {
+    	"select bread"	
+    };
 
     public static final String DATA_COLUMN_TIME = "Time";
     public static final String DATA_COLUMN_RECORD_NO = "Record No";
@@ -97,6 +104,7 @@ public class Constants {
     	INPUT_FILE,
     	TASK,
     	ACCEL_PROCESSING,
+    	CALIBRATED_THRESHOLDS,
     	ANALYSES
     };
     

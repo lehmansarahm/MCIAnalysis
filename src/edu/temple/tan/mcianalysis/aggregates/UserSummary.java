@@ -36,6 +36,28 @@ public class UserSummary {
 	
 	/**
 	 * 
+	 */
+	public String toString() {
+		String out = "\n...User Name: " + userName;
+		out += "\n...Total Trial Time in Sec: " + totalTrialTimeSec;
+		
+		out += "\n...Total Pause Count: " + totalPauseCount;
+		out += "\n...Distinct Pause Count: " + distinctPauseCount;
+		out += "\n...Total Pause Time in Sec: " + totalPauseTimeSec;
+		
+		out += "\n...Total Number of Sudden Direction Changes: " + totalDirectionChanges;
+		
+		out += "\n\nSUBTASKS\n----------------------------------------";
+	    Iterator<Entry<String, SubtaskResult>> it = subtasks.entrySet().iterator();
+	    while (it.hasNext()) {
+	    	out += it.next().getValue() + "\n";
+	    }
+		
+	    return out;
+	}
+	
+	/**
+	 * 
 	 * @return
 	 */
 	public LinkedList<String> getFirstHeaderLine() {
@@ -96,19 +118,25 @@ public class UserSummary {
 			int subtaskPauseCount = 
 				Integer.parseInt(summaryLine[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.NUM_OF_PAUSES.ordinal()]);
 			str.addToTotalPauses(subtaskPauseCount);
+			totalPauseCount += subtaskPauseCount;
 			break;
 		case Constants.ANALYSIS_PAUSE_DURATION:
 			int subtaskIndivPauseCount = 
 				Integer.parseInt(summaryLine[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.NUM_OF_PAUSES.ordinal()]);
 			str.addToDistinctPauseCount(subtaskIndivPauseCount);
-			double subtaskTotalPauseTime = 
+			distinctPauseCount += subtaskIndivPauseCount;
+			
+			double subtaskTotalPauseTimeMS = 
 				Double.parseDouble(summaryLine[Constants.PAUSE_AGGREGATE_COLUMN_ORDER.TOTAL_TIME_PAUSED.ordinal()]);
-			str.addToTotalPauseTime(subtaskTotalPauseTime);
+			str.addToTotalPauseTime(subtaskTotalPauseTimeMS);
+			totalPauseTimeSec += (subtaskTotalPauseTimeMS / 1000.0d);
 			break;
 		case Constants.ANALYSIS_DIRECTION:
 			int directionChanges = 
 				Integer.parseInt(summaryLine[Constants.SUDDEN_MOVEMENT_AGGREGATE_COLUMN_ORDER.NUMBER_OF_DIRECTION_CHANGES.ordinal()]);
 			str.addToTotalDirectionChanges(directionChanges);
+			totalDirectionChanges += directionChanges;
+			
 			double axis1AvgChange = 
 				Double.parseDouble(summaryLine[Constants.SUDDEN_MOVEMENT_AGGREGATE_COLUMN_ORDER.AXIS_1_AVERAGE_ACCEL_CHANGE.ordinal()]);
 			str.setAxis1AvgChange(axis1AvgChange);
@@ -120,6 +148,13 @@ public class UserSummary {
 			double subtaskTimeSec = 
 				Double.parseDouble(summaryLine[Constants.TASK_TIME_AGGREGATE_COLUMN_ORDER.TIME_IN_SEC.ordinal()]);
 			str.setCompletionTime(subtaskTimeSec);
+			totalTrialTimeSec += subtaskTimeSec;
+			
+	        /*Logger.getLogger(UserSummary.class.getName()).log(Level.INFO, 
+	    		"Saving task completion time: " + subtaskTimeSec
+    				+ "\n...for analysis: " + analysis 
+	    			+ "\n...and subtask: " + taskName 
+	    			+ "\n...and user: " + userName + "\n", "");*/
 			break;
 		default:
 			// do nothing

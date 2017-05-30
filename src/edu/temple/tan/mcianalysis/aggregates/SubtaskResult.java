@@ -25,6 +25,24 @@ public class SubtaskResult {
 	
 	/**
 	 * 
+	 */
+	public String toString() {
+		String out = "\n...Subtask Name: " + subtaskName;
+		out += "\n...Completion Time in Sec: " + completionTimeSec;
+
+		out += "\n...Total Pause Count: " + totalPauseCount;
+		out += "\n...Distinct Pause Count: " + distinctPauseCount;
+		out += "\n...Total Pause Time in Millisec: " + totalPauseTime;
+		
+		out += "\n...Total Number of Suddent Direction Changes: " + totalDirectionChanges;
+		out += "\n...Average Acceleration Change Along Axis 1: " + axis1AvgChange;
+		out += "\n...Average Acceleration Change Along Axis 2: " + axis2AvgChange;
+		
+		return out;
+	}
+	
+	/**
+	 * 
 	 * @return
 	 */
 	public String getSubtaskName() {

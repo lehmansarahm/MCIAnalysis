@@ -42,6 +42,8 @@ public class MCIAnalysis {
     public static Set<String> requestedActivitySet = new HashSet<>();
     public static String runTime;
     public static String accelerationProcessing;
+    
+    public static boolean calibThresholdsUtilized = false;
     public static boolean directionUtilized = false;
     public static boolean pauseUtilized = false;
     public static boolean taskTimeUtilized = false;
@@ -127,6 +129,10 @@ public class MCIAnalysis {
                         default:
                             break;
                     }
+                    
+                    int useCalibThresholds = command.useCalibThresholds();
+                    calibThresholdsUtilized = (useCalibThresholds == 1);
+                	//System.out.println("Parsed calibThresholdsUtilized: " + calibThresholdsUtilized);
 
                 	String rawTargetActivity = command.getTaskName();
                 	//System.out.println("Parsed raw targetActivity: " + rawTargetActivity);
@@ -170,7 +176,8 @@ public class MCIAnalysis {
                     
                     // Clear out the activity list for this command set, and progress to the next
                     Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
-                    		"Finished processing input file: " + targetFilePath + " for user: " + userID, "");
+                    		"Finished processing input file: " + targetFilePath + " for user: " 
+            				+ userID + "\n", "");
                     csvActivityList.clear();
             	}
             }

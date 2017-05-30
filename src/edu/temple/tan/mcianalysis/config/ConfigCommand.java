@@ -4,16 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.Constants.CONFIG_FILE_COLUMN_ORDER;
 
 /**
  * 
  * @author Sarah M. Lehman
  */
 public class ConfigCommand {
+	
 	private String username;
 	private String sourceFile;
 	private String taskName;
 	private int accelProcess;
+	private int calibThresholds;
 	private List<AnalysisCommand> analysisOps;
 	
 	/**
@@ -24,20 +27,24 @@ public class ConfigCommand {
 		this.analysisOps = new ArrayList<AnalysisCommand>();
 		for (int i = 0; i < input.size(); i++) {
 			// Remove the label and equals sign
-			String parsedInput = (input.get(i).substring(input.get(i).indexOf("=") + 1)).trim();
-			
+			String rawInput = (input.get(i));
+			String parsedInput = (rawInput.substring(rawInput.indexOf(Constants.DELIMITER_PARAMETER_ASSIGNMENT) + 1)).trim();
+
 			// Can't use switch here because it requires a constant expression
-			// Have to use stacked if's
-			if (i == Constants.CONFIG_FILE_COLUMN_ORDER.USERNAME.ordinal()) {
+			// ...Have to use stacked if's
+			if (i == CONFIG_FILE_COLUMN_ORDER.USERNAME.ordinal()) {
 				this.username = parsedInput;
-			} else if (i == Constants.CONFIG_FILE_COLUMN_ORDER.INPUT_FILE.ordinal()) {
+			} else if (i == CONFIG_FILE_COLUMN_ORDER.INPUT_FILE.ordinal()) {
 				this.sourceFile = parsedInput;
-			} else if (i == Constants.CONFIG_FILE_COLUMN_ORDER.TASK.ordinal()) {
+			} else if (i == CONFIG_FILE_COLUMN_ORDER.TASK.ordinal()) {
 				this.taskName = parsedInput;
-			} else if (i == Constants.CONFIG_FILE_COLUMN_ORDER.ACCEL_PROCESSING.ordinal()) {
+			} else if (i == CONFIG_FILE_COLUMN_ORDER.ACCEL_PROCESSING.ordinal()) {
 				this.accelProcess = 
-					(parsedInput.equalsIgnoreCase("yes") || parsedInput.equalsIgnoreCase("true")) ? 1 : 0;
-			} else if (i >= Constants.CONFIG_FILE_COLUMN_ORDER.ANALYSES.ordinal()) {
+						(parsedInput.equalsIgnoreCase("yes") || parsedInput.equalsIgnoreCase("true")) ? 1 : 0;
+			} else if (i == CONFIG_FILE_COLUMN_ORDER.CALIBRATED_THRESHOLDS.ordinal()) {
+				this.calibThresholds = 
+						(parsedInput.equalsIgnoreCase("yes") || parsedInput.equalsIgnoreCase("true")) ? 1 : 0;
+			} else if (i >= CONFIG_FILE_COLUMN_ORDER.ANALYSES.ordinal()) {
 				this.analysisOps.add(new AnalysisCommand(parsedInput));
 			}
 		}
@@ -79,7 +86,16 @@ public class ConfigCommand {
 	 * 
 	 * @return
 	 */
+	public int useCalibThresholds() {
+		return this.calibThresholds;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public List<AnalysisCommand> getAnalysisOps() {
 		return this.analysisOps;
 	}
+	
 }

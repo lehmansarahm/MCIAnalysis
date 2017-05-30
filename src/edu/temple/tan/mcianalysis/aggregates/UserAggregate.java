@@ -104,9 +104,9 @@ public class UserAggregate {
             	}
         	}
         	
-            String path_to_csv = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_FINAL 
+            String csvFilePath = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_FINAL 
             		+ "/" + Constants.AGGREGATE_FILE_USERS);
-            CSVWriter writer = new CSVWriter(new FileWriter(path_to_csv));
+            CSVWriter writer = new CSVWriter(new FileWriter(csvFilePath));
             writer.writeAll(generateOutputArray(output));
             writer.close();
         } catch (FileNotFoundException ex) {
@@ -167,12 +167,16 @@ public class UserAggregate {
 	    			}
 	    		}
 	    	}
+	    	
+	    	Logger.getLogger(UserAggregate.class.getName()).log(Level.INFO, 
+	        		"New user summary available: " + summary + "\n", "");
 	    	return summary;
         } catch (FileNotFoundException ex) {
             Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
         }
+    	
     	return null;
     }
     
