@@ -14,6 +14,7 @@ import edu.temple.tan.mcianalysis.intermediates.ActivitySplit;
 import edu.temple.tan.mcianalysis.intermediates.CalibrationProcessing;
 import edu.temple.tan.mcianalysis.preprocessing.AccelerationProcessing;
 import edu.temple.tan.mcianalysis.preprocessing.EMAProcessing;
+import edu.temple.tan.mcianalysis.preprocessing.NormalizationProcessing;
 import edu.temple.tan.mcianalysis.utils.Constants;
 
 import java.io.File;
@@ -133,8 +134,12 @@ public class MCIAnalysis {
                     }
 
                     CSVReader emaReader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
-                    EMAProcessing.convertToMovingAverage(emaReader, rawFilename);
+                    targetFilePath = EMAProcessing.convertToMovingAverage(emaReader, rawFilename);
                     emaReader.close();
+
+                    CSVReader normReader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
+                    NormalizationProcessing.normalize(normReader, rawFilename);
+                    normReader.close();
 
                 	String rawTargetActivity = command.getTaskName();
                 	//System.out.println("Parsed raw targetActivity: " + rawTargetActivity);

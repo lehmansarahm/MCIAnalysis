@@ -208,7 +208,8 @@ public class ToolkitUtils {
         		Constants.DATA_COLUMN_ACCEL_Z,
         		Constants.DATA_COLUMN_ACCEL_MAG,
         		Constants.DATA_COLUMN_SPEED,
-        		Constants.DATA_COLUMN_SPEED + "-EMA",
+        		Constants.DATA_COLUMN_SPEED_EMA,
+        		Constants.DATA_COLUMN_SPEED_EMA_SCALED,
         		Constants.DATA_COLUMN_START_END,
         		Constants.DATA_COLUMN_ACTIVITY
         };

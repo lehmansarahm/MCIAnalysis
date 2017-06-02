@@ -39,6 +39,7 @@ public class Constants {
     public static final String DATA_COLUMN_ACCEL_MAG = "Accel-Mag";
     public static final String DATA_COLUMN_SPEED = "Speed";
     public static final String DATA_COLUMN_SPEED_EMA = "Speed-EMA";
+    public static final String DATA_COLUMN_SPEED_EMA_SCALED = "Speed-EMA-Scaled";
     public static final String DATA_COLUMN_START_END = "Start/Quit";
     public static final String DATA_COLUMN_ACTIVITY = "Activity";
     
@@ -82,6 +83,7 @@ public class Constants {
     	ACCEL_MAG,
     	SPEED,
     	SPEED_EMA,
+    	SPEED_EMA_SCALED,
     	START_END, 
     	ACTIVITY 
 	};
@@ -95,10 +97,11 @@ public class Constants {
     public static final String ANALYSIS_TASK_TIME = "TaskTime";
 
     public static final String FOLDER_NAME_FINAL = "/Final";
-    public static final String FOLDER_NAME_INTERM_ACT_SPLIT = "/Intermediate-ActivitySplit";
-    public static final String FOLDER_NAME_INTERM_CALIBRATIONS = "/Intermediate-Calibration";
-    public static final String FOLDER_NAME_PREPROCESSING_LINEAR = "/Preprocessing-Linear";
-    public static final String FOLDER_NAME_PREPROCESSING_LPFILTER = "/Preprocessing-LowPassFilter";
+    public static final String FOLDER_NAME_INTERM_ACT_SPLIT = "/Phase2a-Intermediate-ActivitySplit";
+    public static final String FOLDER_NAME_INTERM_CALIBRATIONS = "/Phase2b-Intermediate-Calibration";
+    public static final String FOLDER_NAME_PREPROCESSING_LINEAR = "/Phase1a-Preprocessing-Linear";
+    public static final String FOLDER_NAME_PREPROCESSING_LPFILTER = "/Phase1b-Preprocessing-LowPassFilter";
+    public static final String FOLDER_NAME_PREPROCESSING_NORM = "/Phase1c-Preprocessing-Normalization";
     public static final String FOLDER_NAME_ACCELERATION = ("/" + ANALYSIS_ACCELERATION);
     public static final String FOLDER_NAME_DIRECTION = ("/" + ANALYSIS_DIRECTION);
     public static final String FOLDER_NAME_PAUSE = ("/" + ANALYSIS_PAUSE);

@@ -12,14 +12,13 @@ import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.utils.Constants;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
-import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.Constants.INTERM_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.Constants.PREPROC_FILE_COLUMN_ORDER;
 
 public class EMAProcessing {
 	
 	private static final double EMA_ALPHA = 0.5d;
-	private static final int EMA_SAMPLE_SIZE = 20;
+	private static final int EMA_SAMPLE_SIZE = (int)Constants.SAMPLING_PERIOD;
 
     /**
      * 
@@ -45,15 +44,15 @@ public class EMAProcessing {
         if (readerLines.size() > 0) {
 	        for (String[] nextLine : readerLines) {
 	            if (!ToolkitUtils.isHeaderLine(nextLine)) {
-		            if (nextLine.length > Constants.INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal())
+		            if (nextLine.length > Constants.INTERM_FILE_COLUMN_ORDER.SPEED.ordinal())
 		            	writeMovingAverage(writer, ema, nextLine);
-		            if (nextLine.length > (INPUT_FILE_COLUMN_ORDER.START_END.ordinal()) && 
-		            		nextLine[INPUT_FILE_COLUMN_ORDER.START_END.ordinal()].equalsIgnoreCase("quit")) 
+		            if (nextLine.length > (INTERM_FILE_COLUMN_ORDER.START_END.ordinal()) && 
+		            		nextLine[INTERM_FILE_COLUMN_ORDER.START_END.ordinal()].equalsIgnoreCase("quit")) 
 		            	break;
 	            }
 	        }
         } else {
-			Logger.getLogger(AccelerationProcessing.class.getName()).log(Level.INFO, 
+			Logger.getLogger(EMAProcessing.class.getName()).log(Level.INFO, 
 	        		"No reader lines found in input file: " + inputFileName, "");
         }
         
