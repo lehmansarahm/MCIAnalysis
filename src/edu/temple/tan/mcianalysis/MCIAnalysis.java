@@ -10,8 +10,10 @@ import edu.temple.tan.mcianalysis.analyses.Analysis;
 import edu.temple.tan.mcianalysis.config.AnalysisCommand;
 import edu.temple.tan.mcianalysis.config.ConfigCommand;
 import edu.temple.tan.mcianalysis.config.ConfigInterpreter;
-import edu.temple.tan.mcianalysis.utils.AccelerationProcessing;
-import edu.temple.tan.mcianalysis.utils.ActivitySplit;
+import edu.temple.tan.mcianalysis.intermediates.ActivitySplit;
+import edu.temple.tan.mcianalysis.intermediates.CalibrationProcessing;
+import edu.temple.tan.mcianalysis.preprocessing.AccelerationProcessing;
+import edu.temple.tan.mcianalysis.preprocessing.EMAProcessing;
 import edu.temple.tan.mcianalysis.utils.Constants;
 
 import java.io.File;
@@ -129,10 +131,10 @@ public class MCIAnalysis {
                         default:
                             break;
                     }
-                    
-                    int useCalibThresholds = command.useCalibThresholds();
-                    calibThresholdsUtilized = (useCalibThresholds == 1);
-                	//System.out.println("Parsed calibThresholdsUtilized: " + calibThresholdsUtilized);
+
+                    CSVReader emaReader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
+                    EMAProcessing.convertToMovingAverage(emaReader, rawFilename);
+                    emaReader.close();
 
                 	String rawTargetActivity = command.getTaskName();
                 	//System.out.println("Parsed raw targetActivity: " + rawTargetActivity);
@@ -151,6 +153,14 @@ public class MCIAnalysis {
                         CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
                         csvActivityList = ActivitySplit.generateCSVForAllActivities(reader, userID);
                         reader.close();
+                    }
+                    
+                    // If necessary, calibrate the pause / sudden movement thresholds
+                    String calibrationStep = command.getCalibStep();
+                    calibThresholdsUtilized = (!calibrationStep.equals(""));
+                    if (calibThresholdsUtilized) {
+                    	CalibrationProcessing.calibrateThresholdsForUser(userID, csvActivityList, calibrationStep);
+                    	//System.out.println("Parsed calibration step: " + calibrationStep);
                     }
 
                     // Iterate through analysis operations provided in config file
@@ -227,14 +237,14 @@ public class MCIAnalysis {
 			// do nothing ... can't delete it if it wasn't there
 		}
         
-        folder = new File(absolute_path.concat(Constants.FOLDER_NAME_INTERMEDIATE));
+        folder = new File(absolute_path.concat(Constants.FOLDER_NAME_INTERM_ACT_SPLIT));
         try {
 			FileUtils.deleteDirectory(folder);
 		} catch (IOException e) {
 			// do nothing ... can't delete it if it wasn't there
 		}
         
-        folder = new File(absolute_path.concat(Constants.FOLDER_NAME_LINEAR));
+        folder = new File(absolute_path.concat(Constants.FOLDER_NAME_PREPROCESSING_LINEAR));
         try {
 			FileUtils.deleteDirectory(folder);
 		} catch (IOException e) {

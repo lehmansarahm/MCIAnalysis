@@ -16,7 +16,7 @@ public class ConfigCommand {
 	private String sourceFile;
 	private String taskName;
 	private int accelProcess;
-	private int calibThresholds;
+	private String calibStep;
 	private List<AnalysisCommand> analysisOps;
 	
 	/**
@@ -42,8 +42,11 @@ public class ConfigCommand {
 				this.accelProcess = 
 						(parsedInput.equalsIgnoreCase("yes") || parsedInput.equalsIgnoreCase("true")) ? 1 : 0;
 			} else if (i == CONFIG_FILE_COLUMN_ORDER.CALIBRATED_THRESHOLDS.ordinal()) {
-				this.calibThresholds = 
-						(parsedInput.equalsIgnoreCase("yes") || parsedInput.equalsIgnoreCase("true")) ? 1 : 0;
+				this.calibStep = 
+						(parsedInput.equalsIgnoreCase("none") || parsedInput.equalsIgnoreCase("false")) 
+							? "" : parsedInput.trim();
+				//Logger.getLogger(ConfigCommand.class.getName()).log(Level.INFO, 
+		        //		"New calibration step identified: " + calibStep, "");
 			} else if (i >= CONFIG_FILE_COLUMN_ORDER.ANALYSES.ordinal()) {
 				this.analysisOps.add(new AnalysisCommand(parsedInput));
 			}
@@ -86,8 +89,8 @@ public class ConfigCommand {
 	 * 
 	 * @return
 	 */
-	public int useCalibThresholds() {
-		return this.calibThresholds;
+	public String getCalibStep() {
+		return this.calibStep;
 	}
 	
 	/**

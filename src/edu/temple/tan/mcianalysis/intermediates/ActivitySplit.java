@@ -3,12 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package edu.temple.tan.mcianalysis.utils;
+package edu.temple.tan.mcianalysis.intermediates;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
+import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
+import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -34,7 +37,7 @@ public class ActivitySplit {
         String timeStamp = getTimeStamp();
         MCIAnalysis.requestedActivitySet.add(requestedActivityName);
         List<String[]> writerContents = new ArrayList<String[]>();
-        writerContents.add(ToolkitUtils.getHeaderLine());
+        writerContents.add(ToolkitUtils.getIntermHeaderLine());
 
         //----------------------------------------------------------------------
         // If the line belongs to the requested activity, it is written to the 
@@ -42,7 +45,7 @@ public class ActivitySplit {
         //----------------------------------------------------------------------
         String[] nextLine;
         while ((nextLine = reader.readNext()) != null) {
-        	String currentActivity = nextLine[Constants.INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()].trim();
+        	String currentActivity = nextLine[INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()].trim();
             if (currentActivity.equalsIgnoreCase(requestedActivityName)) {
             	writerContents.add(nextLine);
             }
@@ -76,12 +79,12 @@ public class ActivitySplit {
         		"Splitting interm activities for user: " + userID, "");
     	
         List<String> intermFilePaths = new ArrayList<String>();
-        String[] headerLine = ToolkitUtils.getHeaderLine();
+        String[] headerLine = ToolkitUtils.getIntermHeaderLine();
         String timeStamp = getTimeStamp();
         String intermFilePath = null;
         
-        int taskStartIndex = Constants.INPUT_FILE_COLUMN_ORDER.START_END.ordinal();
-        int activityIndex = Constants.INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal();
+        int taskStartIndex = INPUT_FILE_COLUMN_ORDER.START_END.ordinal();
+        int activityIndex = INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal();
 
         CSVWriter writer = null;
         boolean activityStarted = false;
@@ -178,12 +181,12 @@ public class ActivitySplit {
      */
     private static String getIntermFilePath(String userID, String accelProcessing, String requestedActivityName, String timeStamp) {
         String absolutePath = new File("").getAbsolutePath();
-        new File(absolutePath.concat(Constants.FOLDER_NAME_INTERMEDIATE)).mkdirs();
+        new File(absolutePath.concat(Constants.FOLDER_NAME_INTERM_ACT_SPLIT)).mkdirs();
         
-        String intermFileName = Constants.FOLDER_NAME_INTERMEDIATE + "/" + userID 
+        String intermFileName = Constants.FOLDER_NAME_INTERM_ACT_SPLIT + "/" + userID 
         		+ (accelProcessing != null ? Constants.DELIMITER_FILENAME + accelProcessing : "")
         		+ Constants.DELIMITER_FILENAME 
-        		+ requestedActivityName.replace(" ", Constants.DELIMITER_SPACE) 
+        		+ ToolkitUtils.getFilenameCompatibleActivityName(requestedActivityName)
         		+ Constants.DELIMITER_FILENAME + timeStamp + ".csv";
         String intermFilePath = absolutePath.concat(intermFileName);
 

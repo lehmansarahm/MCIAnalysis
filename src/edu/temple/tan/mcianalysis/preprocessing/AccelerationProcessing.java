@@ -4,12 +4,15 @@
  * and open the template in the editor.
  */
 
-package edu.temple.tan.mcianalysis.utils;
+package edu.temple.tan.mcianalysis.preprocessing;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
+import edu.temple.tan.mcianalysis.utils.Constants;
 import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
+import edu.temple.tan.mcianalysis.utils.Constants.INTERM_FILE_COLUMN_ORDER;
+import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -41,33 +44,21 @@ public class AccelerationProcessing {
      * @throws IOException
      */
     public static String convertToLinearAcceleration(CSVReader inputReader, String inputFileName) throws IOException {
-        String linearOutputDir = (new File("").getAbsolutePath()).concat(Constants.FOLDER_NAME_LINEAR);
+        String linearOutputDir = (new File("").getAbsolutePath()).concat(Constants.FOLDER_NAME_PREPROCESSING_LINEAR);
         new File(linearOutputDir).mkdirs();
         
         String fileNameComponents[] = inputFileName.split("/");
         inputFileName = fileNameComponents[fileNameComponents.length - 1];
         String newFilePath = linearOutputDir.concat("/" + inputFileName);
 
-        String[] nextWriteLine = new String[INPUT_FILE_COLUMN_ORDER.values().length];
-        nextWriteLine[RAW_TIME_INDEX] = Constants.DATA_COLUMN_TIME;
-        nextWriteLine[INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()] = Constants.DATA_COLUMN_RECORD_NO;
-        nextWriteLine[INPUT_FILE_COLUMN_ORDER.AZIMUTH.ordinal()] = Constants.DATA_COLUMN_AZIMUTH;
-        nextWriteLine[INPUT_FILE_COLUMN_ORDER.PITCH.ordinal()] = Constants.DATA_COLUMN_PITCH;
-        nextWriteLine[INPUT_FILE_COLUMN_ORDER.ROLL.ordinal()] = Constants.DATA_COLUMN_ROLL;
-        nextWriteLine[RAW_ACCEL_X_INDEX] = Constants.DATA_COLUMN_ACCEL_X;
-        nextWriteLine[RAW_ACCEL_Y_INDEX] = Constants.DATA_COLUMN_ACCEL_Y;
-        nextWriteLine[RAW_ACCEL_Z_INDEX] = Constants.DATA_COLUMN_ACCEL_Z;
-        nextWriteLine[INPUT_FILE_COLUMN_ORDER.START_END.ordinal()] = Constants.DATA_COLUMN_START_END;
-        nextWriteLine[RAW_ACTIVITY_INDEX] = Constants.DATA_COLUMN_ACTIVITY;
-
         CSVWriter writer = new CSVWriter(new FileWriter(newFilePath));
-        writer.writeNext(nextWriteLine);
+        writer.writeNext(ToolkitUtils.getIntermHeaderLine());
         writer.flush();
 
         List<String[]> readerLines = inputReader.readAll();
         if (readerLines.size() > 0) {
 	        for (String[] nextLine : readerLines) {
-	            if (!nextLine[RAW_TIME_INDEX].equals(Constants.DATA_COLUMN_TIME)) {
+	            if (!ToolkitUtils.isHeaderLine(nextLine)) {
 		            if (nextLine.length > RAW_ACCEL_Z_INDEX)
 		            	writeLinearAcceleration(writer, nextLine);
 		            if (nextLine.length > (INPUT_FILE_COLUMN_ORDER.START_END.ordinal()) && 
@@ -125,12 +116,56 @@ public class AccelerationProcessing {
 		        nextLine[RAW_ACTIVITY_INDEX] = activityName.replaceAll("[^\\dA-Za-z ]", "");
 	        }
 	
-	        writer.writeNext(nextLine);
+	        writer.writeNext(getWriteLine(nextLine));
 	        writer.flush();
     	} else {
 			Logger.getLogger(AccelerationProcessing.class.getName()).log(Level.INFO, 
-	        		"Cannot parse accel data at time: " + nextLine[RAW_TIME_INDEX], "");
+	        		"Cannot parse acceleration data at time: " + nextLine[RAW_TIME_INDEX], "");
         }
+    }
+
+    /**
+     * 
+     * @param nextLine
+     * @return
+     */
+    private static String[] getWriteLine(String[] nextLine) {
+        String[] writeLine = new String[INTERM_FILE_COLUMN_ORDER.values().length];
+        
+        String rawCurrentTime = nextLine[INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
+    	writeLine[INTERM_FILE_COLUMN_ORDER.TIME.ordinal()] = rawCurrentTime;
+    	
+    	writeLine[INTERM_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()] = 
+    			nextLine[INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
+    	writeLine[INTERM_FILE_COLUMN_ORDER.AZIMUTH.ordinal()] = 
+    			nextLine[INPUT_FILE_COLUMN_ORDER.AZIMUTH.ordinal()];
+    	writeLine[INTERM_FILE_COLUMN_ORDER.PITCH.ordinal()] = 
+    			nextLine[INPUT_FILE_COLUMN_ORDER.PITCH.ordinal()];
+    	writeLine[INTERM_FILE_COLUMN_ORDER.ROLL.ordinal()] = 
+    			nextLine[INPUT_FILE_COLUMN_ORDER.ROLL.ordinal()];
+    	
+    	String rawAccelX = nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()];
+    	writeLine[INTERM_FILE_COLUMN_ORDER.ACCEL_X.ordinal()] = rawAccelX;
+
+    	String rawAccelY = nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()];
+    	writeLine[INTERM_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()] = rawAccelY;
+
+    	String rawAccelZ = nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()];
+    	writeLine[INTERM_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()] = rawAccelZ;
+
+    	double accelMag = ToolkitUtils.calculateMagnitude(Double.parseDouble(rawAccelX), 
+    			Double.parseDouble(rawAccelY), Double.parseDouble(rawAccelZ));
+    	writeLine[INTERM_FILE_COLUMN_ORDER.ACCEL_MAG.ordinal()] = Double.toString(accelMag);
+    	
+    	double instantaneousSpeed = accelMag * (Constants.SAMPLING_PERIOD / 1000.0d);
+    	writeLine[INTERM_FILE_COLUMN_ORDER.SPEED.ordinal()] = Double.toString(instantaneousSpeed);
+    	
+    	writeLine[INTERM_FILE_COLUMN_ORDER.START_END.ordinal()] = 
+    			nextLine[INPUT_FILE_COLUMN_ORDER.START_END.ordinal()];
+    	writeLine[INTERM_FILE_COLUMN_ORDER.ACTIVITY.ordinal()] = 
+    			nextLine[INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()];
+    	
+    	return writeLine;
     }
 
 }

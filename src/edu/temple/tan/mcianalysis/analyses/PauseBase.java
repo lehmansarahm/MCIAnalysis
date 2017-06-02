@@ -1,7 +1,6 @@
 package edu.temple.tan.mcianalysis.analyses;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
@@ -25,13 +24,6 @@ public class PauseBase {
 	protected int pauseWindow;
 	protected int totalPauseCount;
 	protected double totalPauseDuration;
-	
-	private boolean currentlyCalibrating = false;
-	private String calibrationStep = "";
-
-	private double calibPauseThreshold = 0.0d;
-	private double calibTotalAccelMag = 0.0d;
-	private int calibRowCount = 0;
 	
 	/**
 	 * 
@@ -60,41 +52,6 @@ public class PauseBase {
 	protected boolean isHeaderLine(String nextLine[]) {
 		String time =  nextLine[INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
 		return (time.equals(Constants.DATA_COLUMN_TIME));
-	}
-	
-	/**
-	 * 
-	 * @param nextLine
-	 * @return
-	 */
-	protected boolean calibrate(String nextLine[]) {
-		boolean calibrationRequired = true;
-		String currentSubtaskStep = nextLine[INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()];
-		
-		if ((calibrationStep.equals(currentSubtaskStep) && currentlyCalibrating) || 
-				(calibrationStep.equals("") && Arrays.asList(Constants.CALIBRATION_STEPS).contains(currentSubtaskStep))) {
-			// we've found a calibration step ... update counts
-			calibrationStep = currentSubtaskStep;
-			currentlyCalibrating = true;
-			calibRowCount++;
-
-			double currAccelX = Double.parseDouble(nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()]);
-			double currAccelY = Double.parseDouble(nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()]);
-			double currAccelZ = Double.parseDouble(nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()]);
-			calibTotalAccelMag += ToolkitUtils.calculateMagnitude(currAccelX, currAccelY, currAccelZ);
-			
-			// Calibrated pause threshold = 10% of average acceleration magnitude
-			calibPauseThreshold = (calibTotalAccelMag / calibRowCount) * Constants.CALIBRATION_PAUSE_THRESHOLD_PERCENTAGE;
-		} else if (currentlyCalibrating) {
-			//Logger.getLogger(PauseBase.class.getName()).log(Level.INFO, 
-	        //		"New pause threshold calibrated!  Updated value: " + calibPauseThreshold, "");
-			
-			pauseThreshold = calibPauseThreshold;
-			currentlyCalibrating = false;
-			calibrationRequired = false;
-		}
-		
-		return calibrationRequired;
 	}
 	
 	/**

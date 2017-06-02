@@ -1,6 +1,11 @@
 package edu.temple.tan.mcianalysis.utils;
 
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * General purpose utility methods useful to whole toolkit
@@ -9,6 +14,16 @@ import java.io.File;
  * @author Sarah M. Lehman
  */
 public class ToolkitUtils {
+	
+	/**
+	 * 
+	 * @param activityName
+	 * @return
+	 */
+	public static String getFilenameCompatibleActivityName(String activityName) {
+		return activityName.replace(" ", Constants.DELIMITER_SPACE);
+	}
+	
     /**
      * Calculates the magnitude of a vector according to formula:
      * mag=sqrt(x^2+y^2+z^2) 
@@ -66,6 +81,46 @@ public class ToolkitUtils {
         String activityName = nameComponents[nameComponents.length - 2];
     	return activityName;
     }
+    
+    /**
+     * 
+     * @param input
+     * @return
+     */
+    public static Date getDateTime(String input) {
+    	Date dateTime = null;
+    	
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_LONG);
+            dateTime = dateFormat.parse(input);
+        } catch (ParseException ex) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_SHORT);
+            try {
+				dateTime = dateFormat.parse(input);
+			} catch (ParseException e) {
+				// if THAT fails ... do nothing
+	            Logger.getLogger(ToolkitUtils.class.getName()).log(Level.SEVERE, 
+            		"Date input: " + input + " failed to parse to all acceptable date formats.", ex);
+			}
+        }
+        
+        return dateTime;
+    }
+    
+    /**
+     * 
+     * @param startTime
+     * @param endTime
+     * @param recordCount
+     * @return
+     */
+    public static double getSecondsBetweenDates(Date startTime, Date endTime, int recordCount) {
+    	long durationInMS = endTime.getTime() - startTime.getTime();
+        double taskTimeInSec = (((double)durationInMS) / 1000.0);
+        double durationInSec = (((taskTimeInSec == Math.floor(taskTimeInSec)) && !Double.isInfinite(taskTimeInSec))) 
+        		? ((Constants.SAMPLING_PERIOD * recordCount) / 1000.0) : taskTimeInSec;
+		return durationInSec;
+    }
 
     /**
      * 
@@ -85,12 +140,21 @@ public class ToolkitUtils {
     	}
         return isNumeric;  
     }
+    
+    /**
+     * 
+     * @param nextLine
+     * @return
+     */
+    public static boolean isHeaderLine(String[] nextLine) {
+    	return (nextLine[Constants.INPUT_FILE_COLUMN_ORDER.TIME.ordinal()].equals(Constants.DATA_COLUMN_TIME));
+    }
 
     /**
      * 
      * @return
      */
-    public static String[] getHeaderLine() {
+    public static String[] getInputHeaderLine() {
         String[] headerLine = new String[] {
         		Constants.DATA_COLUMN_TIME,
         		Constants.DATA_COLUMN_RECORD_NO,
@@ -100,6 +164,51 @@ public class ToolkitUtils {
         		Constants.DATA_COLUMN_ACCEL_X,
         		Constants.DATA_COLUMN_ACCEL_Y,
         		Constants.DATA_COLUMN_ACCEL_Z,
+        		Constants.DATA_COLUMN_START_END,
+        		Constants.DATA_COLUMN_ACTIVITY
+        };
+        return headerLine;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static String[] getIntermHeaderLine() {
+        String[] headerLine = new String[] {
+        		Constants.DATA_COLUMN_TIME,
+        		Constants.DATA_COLUMN_RECORD_NO,
+        		Constants.DATA_COLUMN_AZIMUTH,
+        		Constants.DATA_COLUMN_PITCH,
+        		Constants.DATA_COLUMN_ROLL,
+        		Constants.DATA_COLUMN_ACCEL_X,
+        		Constants.DATA_COLUMN_ACCEL_Y,
+        		Constants.DATA_COLUMN_ACCEL_Z,
+        		Constants.DATA_COLUMN_ACCEL_MAG,
+        		Constants.DATA_COLUMN_SPEED,
+        		Constants.DATA_COLUMN_START_END,
+        		Constants.DATA_COLUMN_ACTIVITY
+        };
+        return headerLine;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static String[] getPreprocHeaderLine() {
+        String[] headerLine = new String[] {
+        		Constants.DATA_COLUMN_TIME,
+        		Constants.DATA_COLUMN_RECORD_NO,
+        		Constants.DATA_COLUMN_AZIMUTH,
+        		Constants.DATA_COLUMN_PITCH,
+        		Constants.DATA_COLUMN_ROLL,
+        		Constants.DATA_COLUMN_ACCEL_X,
+        		Constants.DATA_COLUMN_ACCEL_Y,
+        		Constants.DATA_COLUMN_ACCEL_Z,
+        		Constants.DATA_COLUMN_ACCEL_MAG,
+        		Constants.DATA_COLUMN_SPEED,
+        		Constants.DATA_COLUMN_SPEED + "-EMA",
         		Constants.DATA_COLUMN_START_END,
         		Constants.DATA_COLUMN_ACTIVITY
         };

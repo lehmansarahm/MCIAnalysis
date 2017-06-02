@@ -25,11 +25,8 @@ public class Constants {
     public static final String FLAG_START = "start";
     public static final String FLAG_QUIT = "quit";
 
-    public static final double CALIBRATION_PAUSE_THRESHOLD_PERCENTAGE = 0.2d;
+    public static final double CALIBRATION_PAUSE_THRESHOLD_PERCENTAGE = 0.5d;
     public static final double CALIBRATION_SUDDEN_MOTION_THRESHOLD_PERCENTAGE = 0.9d;
-    public static final String[] CALIBRATION_STEPS = new String[] {
-    	"select bread"	
-    };
 
     public static final String DATA_COLUMN_TIME = "Time";
     public static final String DATA_COLUMN_RECORD_NO = "Record No";
@@ -39,6 +36,9 @@ public class Constants {
     public static final String DATA_COLUMN_ACCEL_X = "Accel-X";
     public static final String DATA_COLUMN_ACCEL_Y = "Accel-Y";
     public static final String DATA_COLUMN_ACCEL_Z = "Accel-Z";
+    public static final String DATA_COLUMN_ACCEL_MAG = "Accel-Mag";
+    public static final String DATA_COLUMN_SPEED = "Speed";
+    public static final String DATA_COLUMN_SPEED_EMA = "Speed-EMA";
     public static final String DATA_COLUMN_START_END = "Start/Quit";
     public static final String DATA_COLUMN_ACTIVITY = "Activity";
     
@@ -55,6 +55,37 @@ public class Constants {
     	ACTIVITY 
 	};
     
+    public static enum INTERM_FILE_COLUMN_ORDER { 
+    	TIME, 
+    	RECORD_NUM, 
+    	AZIMUTH, 
+    	PITCH, 
+    	ROLL, 
+    	ACCEL_X, 
+    	ACCEL_Y, 
+    	ACCEL_Z, 
+    	ACCEL_MAG,
+    	SPEED,
+    	START_END, 
+    	ACTIVITY 
+	};
+    
+    public static enum PREPROC_FILE_COLUMN_ORDER { 
+    	TIME, 
+    	RECORD_NUM, 
+    	AZIMUTH, 
+    	PITCH, 
+    	ROLL, 
+    	ACCEL_X, 
+    	ACCEL_Y, 
+    	ACCEL_Z, 
+    	ACCEL_MAG,
+    	SPEED,
+    	SPEED_EMA,
+    	START_END, 
+    	ACTIVITY 
+	};
+    
     public static final String ANALYSIS_ACCELERATION = "Acceleration";
     public static final String ANALYSIS_DIRECTION = "Direction";
     public static final String ANALYSIS_PAUSE = "Pause";
@@ -64,8 +95,10 @@ public class Constants {
     public static final String ANALYSIS_TASK_TIME = "TaskTime";
 
     public static final String FOLDER_NAME_FINAL = "/Final";
-    public static final String FOLDER_NAME_INTERMEDIATE = "/Intermediate";
-    public static final String FOLDER_NAME_LINEAR = "/Linear";
+    public static final String FOLDER_NAME_INTERM_ACT_SPLIT = "/Intermediate-ActivitySplit";
+    public static final String FOLDER_NAME_INTERM_CALIBRATIONS = "/Intermediate-Calibration";
+    public static final String FOLDER_NAME_PREPROCESSING_LINEAR = "/Preprocessing-Linear";
+    public static final String FOLDER_NAME_PREPROCESSING_LPFILTER = "/Preprocessing-LowPassFilter";
     public static final String FOLDER_NAME_ACCELERATION = ("/" + ANALYSIS_ACCELERATION);
     public static final String FOLDER_NAME_DIRECTION = ("/" + ANALYSIS_DIRECTION);
     public static final String FOLDER_NAME_PAUSE = ("/" + ANALYSIS_PAUSE);
@@ -92,6 +125,20 @@ public class Constants {
 		AGGREGATE_FILE_PAUSE_DURATION, 
 		AGGREGATE_FILE_TASK_TIME
 	);
+
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    //						CALIBRATION FILES
+    // -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    
+    public static enum CALIB_FILE_COLUMN_ORDER {
+    	USERNAME,
+    	AVERAGE_ACCELERATION,
+    	AVERAGE_SPEED,
+    	PAUSE_THRESHOLD,
+    	SUDDEN_MOTION_THRESHOLD
+    }
 
     // -------------------------------------------------------------------
     // -------------------------------------------------------------------

@@ -4,6 +4,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
+import edu.temple.tan.mcianalysis.intermediates.CalibrationProcessing;
 import edu.temple.tan.mcianalysis.utils.Constants;
 import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
@@ -57,7 +58,7 @@ public class PauseDuration extends PauseBase implements Analysis {
             totalPauseDuration = 0.0;
             
         	// fire off analysis operation
-            createPauseAnalysisCSV();
+            createPauseAnalysisCSV(userID);
             
             // close up shop
         	reader.close();
@@ -73,19 +74,24 @@ public class PauseDuration extends PauseBase implements Analysis {
      * defined minimum, it marks it. If x number of magnitudes are below the 
      * minimum in a row, then a pause had occurred.
      * 
+     * @param userID - the ID of the user for whom the data was recorded
      * @throws IOException
      */
-    private void createPauseAnalysisCSV() throws IOException {
+    private void createPauseAnalysisCSV(String userID) throws IOException {
     	// initialize the local processing properties ...
     	String startTime = "", startNo = "", lastTime = "", lastNo = "", nextLine[];
-    	boolean calibrationRequired = MCIAnalysis.calibThresholdsUtilized, currentlyPaused = false;
+    	boolean currentlyPaused = false;
     	int windowCount = 0;
     	
     	// Iterate through reader contents ...
     	while ((nextLine = reader.readNext()) != null) {
     		if (!isHeaderLine(nextLine)) {
-    			if (calibrationRequired) calibrationRequired = calibrate(nextLine);
-    			else {
+    			if (MCIAnalysis.calibThresholdsUtilized) {
+    				// only update the pause threshold if calibrations have been selected, 
+    				// and a valid calibration threshold exists for the current user
+    				double userThreshold = CalibrationProcessing.getCalibratedPauseThresholdForUser(userID);
+    				if (userThreshold != 0.0d) pauseThreshold = userThreshold;
+    			} else {
             		double currentMagnitude = calculateMagnitude(nextLine);
             		if (currentMagnitude < pauseThreshold) {
         				/*Logger.getLogger(PauseDuration.class.getName()).log(Level.INFO, 

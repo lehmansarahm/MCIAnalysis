@@ -10,7 +10,6 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
-import edu.temple.tan.mcianalysis.utils.Constants;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.FileNotFoundException;
@@ -18,7 +17,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -58,28 +56,15 @@ public class TaskTime implements Analysis {
      */
     private void processTaskTime(CSVReader reader, String userID, String filePath) throws IOException, ParseException {
         List<String[]> readerContents = reader.readAll();
-        
-        long durationInMS = 0;
         Date startTime = null, endTime = null;
+        
         if (readerContents.size() > 1) {
-	        try {
-	            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_LONG);
-	            startTime = dateFormat.parse(readerContents.get(1)[0]);
-	            endTime = dateFormat.parse(readerContents.get(readerContents.size() - 1)[0]);
-	        } catch (ParseException ex) {
-	            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.SIMPLE_TIME_FORMAT_SHORT);
-	            startTime = dateFormat.parse(readerContents.get(1)[0]);
-	            endTime = dateFormat.parse(readerContents.get(readerContents.size() - 1)[0]);
-	        }
+        	startTime = ToolkitUtils.getDateTime(readerContents.get(1)[0]);
+        	endTime = ToolkitUtils.getDateTime(readerContents.get(readerContents.size() - 1)[0]);
         }
 
         if (endTime != null && startTime != null) {
-        	durationInMS = endTime.getTime() - startTime.getTime();
-        	
-            double taskTimeInSec = (((double)durationInMS) / 1000.0);
-            double durationInSec = (((taskTimeInSec == Math.floor(taskTimeInSec)) && !Double.isInfinite(taskTimeInSec))) 
-            		? ((Constants.SAMPLING_PERIOD * (readerContents.size() - 1)) / 1000.0) : taskTimeInSec;
-
+            double durationInSec = ToolkitUtils.getSecondsBetweenDates(startTime, endTime, (readerContents.size() - 1));
             updateTaskTime(filePath, durationInSec, userID);
         }
     }
