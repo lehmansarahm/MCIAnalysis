@@ -10,6 +10,7 @@ import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,8 +24,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -49,12 +48,8 @@ public class Direction implements Analysis {
         try {
             reader = new CSVReader(new FileReader(file_path), ',', '"', 0);
             createDirectionAnalysisCSV(file_path, reader, user_id, param1, param2);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Acceleration.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Pause.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
-            Logger.getLogger(Pause.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException | ParseException ex) {
+        	LogManager.error(Direction.class, ex);
         }
     }
 

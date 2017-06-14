@@ -10,6 +10,7 @@ import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 import edu.temple.tan.mcianalysis.utils.Constants.INTERM_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
@@ -19,8 +20,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ActivitySplit {
 
@@ -80,8 +79,8 @@ public class ActivitySplit {
      * @throws IOException
      */
     public static List<String> generateCSVForAllActivities(CSVReader reader, String userID) throws IOException {
-		Logger.getLogger(ActivitySplit.class.getName()).log(Level.INFO, 
-        		"Splitting interm activities for user: " + userID, "");
+    	LogManager.info(ActivitySplit.class, 
+    			"Splitting interm activities for user: " + userID);
     	
         List<String> intermFilePaths = new ArrayList<String>();
         String[] headerLine = ToolkitUtils.getIntermHeaderLine();

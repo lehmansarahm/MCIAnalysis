@@ -5,13 +5,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 import edu.temple.tan.mcianalysis.utils.Constants.PREPROC_FILE_COLUMN_ORDER;
 
@@ -70,8 +69,8 @@ public class NormalizationProcessing {
 	            }
 	        }
         } else {
-			Logger.getLogger(NormalizationProcessing.class.getName()).log(Level.INFO, 
-	        		"No reader lines found in input file: " + inputFileName, "");
+	    	LogManager.info(NormalizationProcessing.class, 
+		    		"No reader lines found in input file: " + inputFileName);
         }
         
         writer.close();

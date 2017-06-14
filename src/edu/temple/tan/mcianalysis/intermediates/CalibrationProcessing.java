@@ -6,13 +6,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 import edu.temple.tan.mcianalysis.utils.Constants.CALIB_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
@@ -36,8 +35,8 @@ public class CalibrationProcessing {
 		// we are assuming that an intermediate file exists for the subtask data associated 
 		// with the desired calibration step ... if this file does not exist, return
 		if (inputFilePath.equals("")) {
-			Logger.getLogger(CalibrationProcessing.class.getName()).log(Level.INFO, 
-	        		"No valid input file path.  Returning from calibration processing.", "");
+	    	LogManager.info(CalibrationProcessing.class, 
+	    			"No valid input file path.  Returning from calibration processing.");
 			return;
 		}
 		
@@ -53,9 +52,9 @@ public class CalibrationProcessing {
 			CSVReader reader = new CSVReader(new FileReader(inputFilePath), ',', '"', 0);
 			List<String[]> fileContents = reader.readAll();
 			reader.close();
-			
-			Logger.getLogger(CalibrationProcessing.class.getName()).log(Level.INFO, 
-	        		fileContents.size() + " content lines retrieved from input file: " + inputFilePath, "");
+
+	    	LogManager.info(CalibrationProcessing.class, 
+	    			fileContents.size() + " content lines retrieved from input file: " + inputFilePath);
 			
 			double calibTotalAccelMag = 0.0d;
 			int calibRowCount = 0;
@@ -92,7 +91,7 @@ public class CalibrationProcessing {
 				dumpToOutputFile(userName, avgAcceleration, avgSpeed, calibPauseThreshold, calibSuddenMotionThreshold);
 			}
 		} catch (IOException e) {
-            Logger.getLogger(CalibrationProcessing.class.getName()).log(Level.SEVERE, null, e);
+	    	LogManager.error(CalibrationProcessing.class, e);
 		}
 	}
 	
@@ -162,8 +161,8 @@ public class CalibrationProcessing {
         writeLine[CALIB_FILE_COLUMN_ORDER.SUDDEN_MOTION_THRESHOLD.ordinal()] = "Sudden Motion Threshold";
 
         String outputFilePath = (getCalibrationFolderPath() + "/" + getCalibFileNameForUser(userName));
-		Logger.getLogger(CalibrationProcessing.class.getName()).log(Level.INFO, 
-        		"Getting ready to dump calibration data to output file: " + outputFilePath, "");
+    	LogManager.info(CalibrationProcessing.class, 
+    			"Getting ready to dump calibration data to output file: " + outputFilePath);
 		
         CSVWriter writer = new CSVWriter(new FileWriter(outputFilePath));
         writer.writeNext(writeLine);

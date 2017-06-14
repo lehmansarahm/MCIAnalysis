@@ -4,6 +4,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,8 +14,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class UserAggregate {
 
@@ -35,6 +34,8 @@ public class UserAggregate {
         	boolean firstUserProcessed = false;
         	for (String userName : userNames) {
         		UserSummary summary = getUserSummary(userName, analysisDirs);
+        		LogManager.user(summary.toString());
+        		
             	List<LinkedList<String>> summaryOutput = summary.toOutputList();
             	LinkedList<String> summaryTaskNames = summaryOutput.get(0);
             	LinkedList<String> summaryMetricNames = summaryOutput.get(1);
@@ -104,15 +105,16 @@ public class UserAggregate {
             	}
         	}
         	
+        	// write the official user summary to CSV
             String csvFilePath = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_FINAL 
             		+ "/" + Constants.AGGREGATE_FILE_USERS);
             CSVWriter writer = new CSVWriter(new FileWriter(csvFilePath));
             writer.writeAll(generateOutputArray(output));
             writer.close();
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
+        	LogManager.error(UserAggregate.class, ex);
         } catch (IOException ex) {
-            Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
+        	LogManager.error(UserAggregate.class, ex);
         }
     }
     
@@ -167,14 +169,11 @@ public class UserAggregate {
 	    			}
 	    		}
 	    	}
-	    	
-	    	Logger.getLogger(UserAggregate.class.getName()).log(Level.INFO, 
-	        		"New user summary available: " + summary + "\n", "");
 	    	return summary;
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
+        	LogManager.error(UserAggregate.class, ex);
         } catch (IOException ex) {
-            Logger.getLogger(UserAggregate.class.getName()).log(Level.SEVERE, null, ex);
+        	LogManager.error(UserAggregate.class, ex);
         }
     	
     	return null;

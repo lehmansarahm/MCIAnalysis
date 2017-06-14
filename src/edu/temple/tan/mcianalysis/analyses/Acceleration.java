@@ -9,14 +9,12 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -35,10 +33,8 @@ public class Acceleration implements Analysis {
         try {
             reader = new CSVReader(new FileReader(file_path), ',', '"', 0);
             createAccelerationOnlyCSV(file_path, reader, user_id);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Acceleration.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(Acceleration.class.getName()).log(Level.SEVERE, null, ex);
+        	LogManager.error(Acceleration.class, ex);
         }
     }
 

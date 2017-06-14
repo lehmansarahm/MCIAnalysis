@@ -10,6 +10,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.FileNotFoundException;
@@ -20,8 +21,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class TaskTime implements Analysis {
 
@@ -37,12 +36,8 @@ public class TaskTime implements Analysis {
         try {
         	CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);
             processTaskTime(reader, userID,filePath);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(TaskTime.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(TaskTime.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
-            Logger.getLogger(TaskTime.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException | ParseException ex) {
+        	LogManager.error(TaskTime.class, ex);
         }
     }
 

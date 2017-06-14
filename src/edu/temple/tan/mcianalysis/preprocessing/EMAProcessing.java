@@ -4,13 +4,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 import edu.temple.tan.mcianalysis.utils.Constants.INTERM_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.Constants.PREPROC_FILE_COLUMN_ORDER;
@@ -52,8 +51,8 @@ public class EMAProcessing {
 	            }
 	        }
         } else {
-			Logger.getLogger(EMAProcessing.class.getName()).log(Level.INFO, 
-	        		"No reader lines found in input file: " + inputFileName, "");
+	    	LogManager.info(EMAProcessing.class, 
+		    		"No reader lines found in input file: " + inputFileName);
         }
         
         writer.close();
@@ -106,9 +105,9 @@ public class EMAProcessing {
 	        writer.writeNext(writeLine);
 	        writer.flush();
     	} else {
-			Logger.getLogger(AccelerationProcessing.class.getName()).log(Level.INFO, 
-	        		"Cannot parse speed data at line number: " 
-        				+ nextLine[PREPROC_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()], "");
+	    	LogManager.info(EMAProcessing.class, 
+		    		"Cannot parse speed data at line number: " 
+        				+ nextLine[PREPROC_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()]);
         }
     }
     

@@ -6,14 +6,13 @@ import com.opencsv.CSVWriter;
 import edu.temple.tan.mcianalysis.MCIAnalysis;
 import edu.temple.tan.mcianalysis.intermediates.CalibrationProcessing;
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Analysis operation for MCI Analysis Toolkit.  Intended to identify pauses 
@@ -64,7 +63,7 @@ public class PauseDuration extends PauseBase implements Analysis {
         	reader.close();
             writer.close();
         } catch (IOException ex) {
-            Logger.getLogger(PauseDuration.class.getName()).log(Level.SEVERE, null, ex);
+        	LogManager.error(PauseDuration.class, ex);
         }
     }
     

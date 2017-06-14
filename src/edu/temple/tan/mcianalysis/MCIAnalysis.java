@@ -16,6 +16,8 @@ import edu.temple.tan.mcianalysis.preprocessing.AccelerationProcessing;
 import edu.temple.tan.mcianalysis.preprocessing.EMAProcessing;
 import edu.temple.tan.mcianalysis.preprocessing.NormalizationProcessing;
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
+import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,10 +29,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.apache.commons.io.FileUtils;
 
 /**
  * Primary executable class within the MCI Analysis toolkit.  Searches file 
@@ -62,7 +60,7 @@ public class MCIAnalysis {
     	IllegalArgumentException, InvocationTargetException, InstantiationException {
     	
     	// before anything else, clear out artifacts from last execution
-    	removeOldArtifacts();
+    	ToolkitUtils.removeOldArtifacts();
     	
         List<ConfigCommand> commands = ConfigInterpreter.loadNewCommands();
         String filePath = new File("").getAbsolutePath();
@@ -92,8 +90,6 @@ public class MCIAnalysis {
                 		for (int j = 0; j < inputFiles.size(); j++) {
                 			String inputFilePath = inputFiles.get(j);
                 			if (inputFilePath.toLowerCase().contains(userID.toLowerCase())) {
-                    			//Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
-                    	        //		"New input file path: " + inputFilePath + " for user: " + userID, "");
                 				rawFilenameList[i] = inputFilePath;
                 			}
                 		}
@@ -108,18 +104,12 @@ public class MCIAnalysis {
                 	// Retrieve the initial command details (username, input file, 
                 	// target activity, accel. proc. mode)
             		String userID = userIDList[i];
-                	//System.out.println("Parsed userID: " + userID);
-
             		String rawFilename = getFilename(userID, rawFilenameList);
                     String targetFilePath = filePath.concat(rawFilename);
-                	//System.out.println("Parsed targetFile: " + targetFile);
                 	
-                    int accelerationProcess = command.getAccelProcess();
-                	//System.out.println("Parsed acceleration_process: " + 
-                	//		((acceleration_process == 0) ? "raw" : "linear"));
-
                     // CSVReader reader is one of two arguments to be passed to the
                     // analysis methods, to be populated based on accel. processing selection
+                    int accelerationProcess = command.getAccelProcess();
                     switch (accelerationProcess) {
                         case 0:
                             accelerationProcessing = "Raw";
@@ -142,17 +132,12 @@ public class MCIAnalysis {
                     normReader.close();
 
                 	String rawTargetActivity = command.getTaskName();
-                	//System.out.println("Parsed raw targetActivity: " + rawTargetActivity);
                     
                     // Split out activity list based on user selection
                     List<String> csvActivityList = new ArrayList<String>();
                     if (!rawTargetActivity.equalsIgnoreCase("All")) {
                         String[] targetActivities = rawTargetActivity.split(Constants.DELIMITER_PARAMETER);
                         for (String targetActivity : targetActivities) {
-                            /*Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
-                            		"Splitting activity sheet for target: \'" + targetActivity 
-                            		+ "\' using source file: " + targetFilePath + " for user: " 
-                    				+ userID + "\n\n", "");*/
                             CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
                             String intermFilePath = ActivitySplit.generateActivitySpecificCSV(reader, userID, targetActivity.trim());
                             if (intermFilePath != null) csvActivityList.add(intermFilePath);
@@ -169,7 +154,6 @@ public class MCIAnalysis {
                     calibThresholdsUtilized = (!calibrationStep.equals(""));
                     if (calibThresholdsUtilized) {
                     	CalibrationProcessing.calibrateThresholdsForUser(userID, csvActivityList, calibrationStep);
-                    	//System.out.println("Parsed calibration step: " + calibrationStep);
                     }
 
                     // Iterate through analysis operations provided in config file
@@ -194,9 +178,8 @@ public class MCIAnalysis {
                     }
                     
                     // Clear out the activity list for this command set, and progress to the next
-                    Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
-                    		"Finished processing input file: " + targetFilePath + " for user: " 
-            				+ userID + "\n", "");
+                    LogManager.info(MCIAnalysis.class, "Finished processing input file: " 
+                    		+ targetFilePath + " for user: " + userID + "\n");
                     csvActivityList.clear();
             	}
             }
@@ -208,6 +191,7 @@ public class MCIAnalysis {
 		if (pauseUtilized) PauseAggregate.aggregatePauseCSV();
 		if (taskTimeUtilized) TimeAggregate.aggregateTimeCSV();
 		if (taskTimeUtilized && (pauseUtilized || directionUtilized)) UserAggregate.aggregateUserResultsCSV();
+        LogManager.writeAll();
 	}
     
     /**
@@ -218,46 +202,13 @@ public class MCIAnalysis {
      */
     private static String getFilename(String userID, String[] rawFilenameList) {
     	String filename = "";
-        //Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
-        //		"Getting input file for user: " + userID, "");
     	for (int i = 0; i < rawFilenameList.length; i++) {
     		String rawFilename = rawFilenameList[i].toLowerCase();
-            //Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
-            //		"Comparing file name: " + rawFilename, "");
     		if (rawFilename.contains(userID.toLowerCase())) {
     			filename = rawFilenameList[i];
     			break;
     		}
     	}
     	return filename;
-    }
-    
-    /**
-     * Support method to clean up any remaining artifacts from previous executions 
-     * before proceeding with the current execution
-     */
-    private static void removeOldArtifacts() {
-        String absolute_path = new File("").getAbsolutePath();
-        
-        File folder = new File(absolute_path.concat(Constants.FOLDER_NAME_FINAL));
-        try {
-			FileUtils.deleteDirectory(folder);
-		} catch (IOException e) {
-			// do nothing ... can't delete it if it wasn't there
-		}
-        
-        folder = new File(absolute_path.concat(Constants.FOLDER_NAME_INTERM_ACT_SPLIT));
-        try {
-			FileUtils.deleteDirectory(folder);
-		} catch (IOException e) {
-			// do nothing ... can't delete it if it wasn't there
-		}
-        
-        folder = new File(absolute_path.concat(Constants.FOLDER_NAME_PREPROCESSING_LINEAR));
-        try {
-			FileUtils.deleteDirectory(folder);
-		} catch (IOException e) {
-			// do nothing ... can't delete it if it wasn't there
-		}
     }
 }

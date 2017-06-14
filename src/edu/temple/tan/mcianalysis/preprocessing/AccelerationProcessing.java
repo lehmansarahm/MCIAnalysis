@@ -10,6 +10,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.LogManager;
 import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.Constants.INTERM_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
@@ -18,8 +19,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class AccelerationProcessing {
 
@@ -67,8 +66,8 @@ public class AccelerationProcessing {
 	            }
 	        }
         } else {
-			Logger.getLogger(AccelerationProcessing.class.getName()).log(Level.INFO, 
-	        		"No reader lines found in input file: " + inputFileName, "");
+	    	LogManager.info(AccelerationProcessing.class, 
+	    		"No reader lines found in input file: " + inputFileName);
         }
         
         writer.close();
@@ -119,8 +118,8 @@ public class AccelerationProcessing {
 	        writer.writeNext(getWriteLine(nextLine));
 	        writer.flush();
     	} else {
-			Logger.getLogger(AccelerationProcessing.class.getName()).log(Level.INFO, 
-	        		"Cannot parse acceleration data at line number: " + nextLine[RAW_LINE_NO_INDEX], "");
+	    	LogManager.info(AccelerationProcessing.class, 
+		    		"Cannot parse acceleration data at line number: " + nextLine[RAW_LINE_NO_INDEX]);
         }
     }
 

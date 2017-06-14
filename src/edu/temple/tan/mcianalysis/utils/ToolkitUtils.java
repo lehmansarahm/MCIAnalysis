@@ -1,11 +1,12 @@
 package edu.temple.tan.mcianalysis.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * General purpose utility methods useful to whole toolkit
@@ -57,6 +58,9 @@ public class ToolkitUtils {
         String finalFilename = pathComponents[pathComponents.length - 1];
         String absolutePath = new File("").getAbsolutePath();
         
+        String debugPath = absolutePath.concat(Constants.FOLDER_NAME_DEBUG);
+        new File(debugPath).mkdirs();
+        
         absolutePath = absolutePath.concat(Constants.FOLDER_NAME_FINAL);
         new File(absolutePath).mkdirs();
         
@@ -69,6 +73,37 @@ public class ToolkitUtils {
         absolutePath = absolutePath.concat((Constants.DELIMITER_FILEPATH 
         		+ analysisName + Constants.DELIMITER_FILENAME).concat(finalFilename));
         return absolutePath;
+    }
+    
+    /**
+     * Support method to clean up any remaining artifacts from previous executions 
+     * before proceeding with the current execution
+     */
+    public static void removeOldArtifacts() {
+        String absolutePath = new File("").getAbsolutePath();
+        removeOldDirectory(absolutePath, Constants.FOLDER_NAME_FINAL);
+        removeOldDirectory(absolutePath, Constants.FOLDER_NAME_DEBUG);
+
+        removeOldDirectory(absolutePath, Constants.FOLDER_NAME_PREPROCESSING_LINEAR);
+        removeOldDirectory(absolutePath, Constants.FOLDER_NAME_PREPROCESSING_LPFILTER);
+        removeOldDirectory(absolutePath, Constants.FOLDER_NAME_PREPROCESSING_NORM);
+
+        removeOldDirectory(absolutePath, Constants.FOLDER_NAME_INTERM_ACT_SPLIT);
+        removeOldDirectory(absolutePath, Constants.FOLDER_NAME_INTERM_CALIBRATIONS);
+    }
+    
+    /**
+     * 
+     * @param absolutePath
+     * @param folderName
+     */
+    private static void removeOldDirectory(String absolutePath, String folderName) {
+        try {
+            File folder = new File(absolutePath.concat(folderName));
+			FileUtils.deleteDirectory(folder);
+		} catch (IOException e) {
+			// do nothing ... can't delete it if it wasn't there
+		}
     }
     
 	/**
@@ -99,8 +134,7 @@ public class ToolkitUtils {
 				dateTime = dateFormat.parse(input);
 			} catch (ParseException e) {
 				// if THAT fails ... do nothing
-	            Logger.getLogger(ToolkitUtils.class.getName()).log(Level.SEVERE, 
-            		"Date input: " + input + " failed to parse to all acceptable date formats.", ex);
+		    	LogManager.error(ToolkitUtils.class, ex);
 			}
         }
         
