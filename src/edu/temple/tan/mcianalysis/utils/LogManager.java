@@ -12,24 +12,74 @@ public class LogManager {
 	private static List<String> infoMessages = new ArrayList<>();
 	private static List<String> userMessages = new ArrayList<>();
 	
+	/**
+	 * 
+	 * @param message
+	 */
 	public static void error(String message) { errorMessages.add(message + "\n"); }
-	public static void error(Class<?> source, String message) { errorMessages.add(source.getName() + "\n" + message + "\n"); }
+	
+	/**
+	 * 
+	 * @param source
+	 * @param message
+	 */
+	public static void error(Class<?> source, String message) { 
+		errorMessages.add(source.getName() + "\n" + message + "\n"); 
+	}
+	
+	/**
+	 * 
+	 * @param source
+	 * @param ex
+	 */
 	public static void error(Class<?> source, Exception ex) { 
 		errorMessages.add(source.getName() + "\n" + ex.getMessage() + "\n" + ex.getStackTrace()); 
 	}
 	
+	/**
+	 * 
+	 * @param message
+	 */
 	public static void info(String message) { infoMessages.add(message + "\n"); }
-	public static void info(Class<?> source, String message) { infoMessages.add(source.getName() + "\n" + message + "\n"); }
 	
+	/**
+	 * 
+	 * @param source
+	 * @param message
+	 */
+	public static void info(Class<?> source, String message) { 
+		infoMessages.add(source.getName() + "\n" + message + "\n"); 
+	}
+	
+	/**
+	 * 
+	 * @param message
+	 */
 	public static void user(String message) { userMessages.add(message + "\n"); }
-	public static void user(Class<?> source, String message) { userMessages.add(source.getName() + "\n" + message + "\n"); }
 	
+	/**
+	 * 
+	 * @param source
+	 * @param message
+	 */
+	public static void user(Class<?> source, String message) { 
+		userMessages.add(source.getName() + "\n" + message + "\n"); 
+	}
+	
+	/**
+	 * 
+	 */
 	public static void writeAll() {
 		writeLog(Constants.LOG_FILE_ERRORS, errorMessages);
 		writeLog(Constants.LOG_FILE_INFO, infoMessages);
 		writeLog(Constants.LOG_FILE_USER_RESULTS, userMessages);
 	}
 	
+	/**
+	 * 
+	 * @param logFileName
+	 * @param logFileContents
+	 */
 	private static void writeLog(String logFileName, List<String> logFileContents) {
         String logFilePath = new File("").getAbsolutePath().concat(Constants.FOLDER_NAME_DEBUG + "/" + logFileName);
         try {
