@@ -107,8 +107,8 @@ public class EMAProcessing {
 	        writer.flush();
     	} else {
 			Logger.getLogger(AccelerationProcessing.class.getName()).log(Level.INFO, 
-	        		"Cannot parse speed data at time: " 
-        				+ nextLine[PREPROC_FILE_COLUMN_ORDER.TIME.ordinal()], "");
+	        		"Cannot parse speed data at line number: " 
+        				+ nextLine[PREPROC_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()], "");
         }
     }
     

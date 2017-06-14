@@ -134,10 +134,10 @@ public class MCIAnalysis {
                     }
 
                     CSVReader emaReader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
-                    targetFilePath = EMAProcessing.convertToMovingAverage(emaReader, rawFilename);
+                    String emaFilePath = EMAProcessing.convertToMovingAverage(emaReader, rawFilename);
                     emaReader.close();
 
-                    CSVReader normReader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
+                    CSVReader normReader = new CSVReader(new FileReader(emaFilePath), ',', '"', 0);
                     NormalizationProcessing.normalize(normReader, rawFilename);
                     normReader.close();
 
@@ -149,6 +149,10 @@ public class MCIAnalysis {
                     if (!rawTargetActivity.equalsIgnoreCase("All")) {
                         String[] targetActivities = rawTargetActivity.split(Constants.DELIMITER_PARAMETER);
                         for (String targetActivity : targetActivities) {
+                            /*Logger.getLogger(MCIAnalysis.class.getName()).log(Level.INFO, 
+                            		"Splitting activity sheet for target: \'" + targetActivity 
+                            		+ "\' using source file: " + targetFilePath + " for user: " 
+                    				+ userID + "\n\n", "");*/
                             CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
                             String intermFilePath = ActivitySplit.generateActivitySpecificCSV(reader, userID, targetActivity.trim());
                             if (intermFilePath != null) csvActivityList.add(intermFilePath);

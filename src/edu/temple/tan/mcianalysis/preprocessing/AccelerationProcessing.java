@@ -28,7 +28,7 @@ public class AccelerationProcessing {
     private static final int ACCEL_Y = 1;
     private static final int ACCEL_Z = 2;
 
-    private static final int RAW_TIME_INDEX = INPUT_FILE_COLUMN_ORDER.TIME.ordinal();
+    private static final int RAW_LINE_NO_INDEX = INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal();
     private static final int RAW_ACCEL_X_INDEX = INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal();
     private static final int RAW_ACCEL_Y_INDEX = INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal();
     private static final int RAW_ACCEL_Z_INDEX = INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal();
@@ -120,7 +120,7 @@ public class AccelerationProcessing {
 	        writer.flush();
     	} else {
 			Logger.getLogger(AccelerationProcessing.class.getName()).log(Level.INFO, 
-	        		"Cannot parse acceleration data at time: " + nextLine[RAW_TIME_INDEX], "");
+	        		"Cannot parse acceleration data at line number: " + nextLine[RAW_LINE_NO_INDEX], "");
         }
     }
 

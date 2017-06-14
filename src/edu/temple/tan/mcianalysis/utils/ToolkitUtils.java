@@ -132,7 +132,7 @@ public class ToolkitUtils {
     	if (s != null) {
     		isNumeric = true;
     		for (String t : s) {
-    			if (t.equalsIgnoreCase("") || !t.matches("[-+]?\\d*\\.?\\d+")) {
+    			if (t.equalsIgnoreCase("") || !t.matches("[-+]?\\d*\\.?\\d+(?:E[-+]?\\d+)?")) {
     				isNumeric = false;
     				break;
     			}

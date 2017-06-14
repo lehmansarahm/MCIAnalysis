@@ -10,7 +10,7 @@ import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
 import edu.temple.tan.mcianalysis.utils.Constants;
-import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
+import edu.temple.tan.mcianalysis.utils.Constants.INTERM_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.File;
@@ -45,11 +45,16 @@ public class ActivitySplit {
         //----------------------------------------------------------------------
         String[] nextLine;
         while ((nextLine = reader.readNext()) != null) {
-        	String currentActivity = nextLine[INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()].trim();
+        	String currentActivity = nextLine[INTERM_FILE_COLUMN_ORDER.ACTIVITY.ordinal()].trim();
             if (currentActivity.equalsIgnoreCase(requestedActivityName)) {
             	writerContents.add(nextLine);
             }
         }
+        
+        /*Logger.getLogger(ActivitySplit.class.getName()).log(Level.INFO, 
+        		"Splitting activity sheet for target: \'" + requestedActivityName 
+        		+ "\' using " + writerContents.size() + " content lines for user: " 
+				+ userID + "\n\n", "");*/
 
         //----------------------------------------------------------------------
         // The new CSV file name will be the user id, activity, and time stamp
@@ -83,8 +88,8 @@ public class ActivitySplit {
         String timeStamp = getTimeStamp();
         String intermFilePath = null;
         
-        int taskStartIndex = INPUT_FILE_COLUMN_ORDER.START_END.ordinal();
-        int activityIndex = INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal();
+        int taskStartIndex = INTERM_FILE_COLUMN_ORDER.START_END.ordinal();
+        int activityIndex = INTERM_FILE_COLUMN_ORDER.ACTIVITY.ordinal();
 
         CSVWriter writer = null;
         boolean activityStarted = false;
