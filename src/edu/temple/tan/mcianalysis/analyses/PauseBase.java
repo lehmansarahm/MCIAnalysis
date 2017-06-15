@@ -4,6 +4,9 @@ import java.io.IOException;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+
+import edu.temple.tan.mcianalysis.MCIAnalysis;
+import edu.temple.tan.mcianalysis.intermediates.CalibrationProcessing;
 import edu.temple.tan.mcianalysis.utils.Constants;
 import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.Constants.PAUSE_OUTPUT_FILE_CONTENT_COLUMN_ORDER;
@@ -22,8 +25,27 @@ public class PauseBase {
 	
 	protected double pauseThreshold;
 	protected int pauseWindow;
-	protected int totalPauseCount;
-	protected double totalPauseDuration;
+	protected int totalPauseCountAccel = 0, totalPauseCountSpeed = 0;
+	protected double totalPauseDurationAccel = 0.0, totalPauseDurationSpeed = 0.0;
+	
+	protected static final double PAUSE_SPEED_THRESHOLD = 0.01;
+
+	// initialize the local processing properties ...
+	protected String startTime = "", startNo = "", endTime = "", endNo = "";
+	protected boolean useAccel = true, currentlyPaused = false;
+	protected int windowCount = 0;
+	
+	/**
+	 * 
+	 */
+	protected void resetProcessingProps() {
+		startTime = "";
+		startNo = "";
+		endTime = "";
+		endNo = "";
+		currentlyPaused = false;
+		windowCount = 0;
+	}
 	
 	/**
 	 * 
@@ -83,7 +105,7 @@ public class PauseBase {
 	protected void addToPauseCSV(String startTime, String startLineNum,  String endTime, 
 	  String endLineNum, double duration) {
     	// check to see if we need a header row
-		if (totalPauseCount == 0) {
+		if ((useAccel && totalPauseCountAccel == 0) || (!useAccel && totalPauseCountSpeed == 0)) {
             writer.writeNext(generateNextLine("Pause Start Time", "Pause Start Line",
             		"Pause End Time", "Pause End Line", "Pause Duration"));
 		}
@@ -116,18 +138,33 @@ public class PauseBase {
     }
     
     /**
+     * 
+     * @param userID
+     */
+    protected void checkForCalibratedThreshold(String userID) {
+		if (MCIAnalysis.calibThresholdsUtilized) {
+			// only update the pause threshold if calibrations have been selected, 
+			// and a valid calibration threshold exists for the current user
+			double userThreshold = CalibrationProcessing.getCalibratedPauseThresholdForUser(userID);
+			if (userThreshold != 0.0d) pauseThreshold = userThreshold;
+		}
+    }
+    
+    /**
      * Generates the closing content of the pause output file based on the provided parameter values
      * 
      * @throws IOException
      */
     protected void finalizePauseCSV() throws IOException {
-    	double averagePauseDuration = (totalPauseCount != 0) ? (totalPauseDuration / totalPauseCount) : 0;
+    	double averagePauseDurationAccel = (totalPauseCountAccel != 0) ? (totalPauseDurationAccel / totalPauseCountAccel) : 0;
+    	double averagePauseDurationSpeed = (totalPauseCountSpeed != 0) ? (totalPauseDurationSpeed / totalPauseCountSpeed) : 0;
+    	double averagePauseDuration = (useAccel) ? averagePauseDurationAccel : averagePauseDurationSpeed;
 
         String totalLine[] = new String[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.values().length];
         totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.PAUSE_NUM_LABEL.ordinal()] = "Number of Pauses:";
-        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.PAUSE_NUM_VALUE.ordinal()] = String.valueOf(totalPauseCount);
+        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.PAUSE_NUM_VALUE.ordinal()] = String.valueOf(useAccel ? totalPauseCountAccel : totalPauseCountSpeed);
         totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.TOTAL_PAUSE_TIME_LABEL.ordinal()] = "Total Time Spent Paused:";
-        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.TOTAL_PAUSE_TIME_VALUE.ordinal()] = String.valueOf(totalPauseDuration);
+        totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.TOTAL_PAUSE_TIME_VALUE.ordinal()] = String.valueOf(useAccel ? totalPauseDurationAccel : totalPauseDurationSpeed);
         totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.AVG_PAUSE_TIME_LABEL.ordinal()] = "Average Pause Duration:";
         totalLine[PAUSE_OUTPUT_FILE_TOTALS_COLUMN_ORDER.AVG_PAUSE_TIME_VALUE.ordinal()] = String.valueOf(averagePauseDuration);
 

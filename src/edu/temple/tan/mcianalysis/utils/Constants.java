@@ -56,21 +56,6 @@ public class Constants {
     	ACTIVITY 
 	};
     
-    public static enum INTERM_FILE_COLUMN_ORDER { 
-    	TIME, 
-    	RECORD_NUM, 
-    	AZIMUTH, 
-    	PITCH, 
-    	ROLL, 
-    	ACCEL_X, 
-    	ACCEL_Y, 
-    	ACCEL_Z, 
-    	ACCEL_MAG,
-    	SPEED,
-    	START_END, 
-    	ACTIVITY 
-	};
-    
     public static enum PREPROC_FILE_COLUMN_ORDER { 
     	TIME, 
     	RECORD_NUM, 
@@ -84,6 +69,21 @@ public class Constants {
     	SPEED,
     	SPEED_EMA,
     	SPEED_EMA_SCALED,
+    	START_END, 
+    	ACTIVITY 
+	};
+    
+    public static enum INTERM_FILE_COLUMN_ORDER { 
+    	TIME, 
+    	RECORD_NUM, 
+    	AZIMUTH, 
+    	PITCH, 
+    	ROLL, 
+    	ACCEL_X, 
+    	ACCEL_Y, 
+    	ACCEL_Z, 
+    	ACCEL_MAG,
+    	SPEED,
     	START_END, 
     	ACTIVITY 
 	};

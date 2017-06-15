@@ -162,6 +162,7 @@ public class MCIAnalysis {
                 int taskCompletionThreshold = command.getTaskCompletionThreshold();
                 csvActivityList = ActivityFilter.filterByTaskCompletion(csvActivityList, taskCompletionThreshold, userIDList.length);
                 
+                // for every activity file in the final list, run the desired analysis ops
             	for (String targetFilePath : csvActivityList) {
             		String filename = ToolkitUtils.getFileNameFromAbsolutePath(targetFilePath);
             		String userID = ToolkitUtils.getUsernameFromFileName(filename);

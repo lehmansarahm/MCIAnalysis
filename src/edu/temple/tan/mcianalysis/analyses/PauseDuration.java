@@ -4,10 +4,9 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.MCIAnalysis;
-import edu.temple.tan.mcianalysis.intermediates.CalibrationProcessing;
 import edu.temple.tan.mcianalysis.utils.Constants;
 import edu.temple.tan.mcianalysis.utils.LogManager;
-import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
+import edu.temple.tan.mcianalysis.utils.Constants.INTERM_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.FileReader;
@@ -53,8 +52,6 @@ public class PauseDuration extends PauseBase implements Analysis {
             writer = new CSVWriter(new FileWriter(csvPath));
         	pauseThreshold = Double.parseDouble(pauseThresholdIn);
         	pauseWindow = Integer.parseInt(pauseWindowIn);
-            totalPauseCount = 0;
-            totalPauseDuration = 0.0;
             
         	// fire off analysis operation
             createPauseAnalysisCSV(userID);
@@ -77,61 +74,59 @@ public class PauseDuration extends PauseBase implements Analysis {
      * @throws IOException
      */
     private void createPauseAnalysisCSV(String userID) throws IOException {
-    	// initialize the local processing properties ...
-    	String startTime = "", startNo = "", lastTime = "", lastNo = "", nextLine[];
-    	boolean currentlyPaused = false;
-    	int windowCount = 0;
+    	// update pause threshold if calibrations were used
+    	checkForCalibratedThreshold(userID);
     	
     	// Iterate through reader contents ...
+    	String[] nextLine;
     	while ((nextLine = reader.readNext()) != null) {
     		if (!isHeaderLine(nextLine)) {
-    			if (MCIAnalysis.calibThresholdsUtilized) {
-    				// only update the pause threshold if calibrations have been selected, 
-    				// and a valid calibration threshold exists for the current user
-    				double userThreshold = CalibrationProcessing.getCalibratedPauseThresholdForUser(userID);
-    				if (userThreshold != 0.0d) pauseThreshold = userThreshold;
-    			} else {
-            		double currentMagnitude = calculateMagnitude(nextLine);
-            		if (currentMagnitude < pauseThreshold) {
-        				/*Logger.getLogger(PauseDuration.class.getName()).log(Level.INFO, 
-        		        		"Pause instance found!\nComparing current acceleration magnitude: " 
-        		        				+ currentMagnitude + "\n...against pause threshold value: " 
-        		        				+ pauseThreshold + "\n", "");*/
-                		
-            			// we've found a pause instance
-            			if (!currentlyPaused) {
-            				// new pause instance ... log the starting details
-            				startTime = nextLine[INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
-            				startNo = nextLine[INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
-            				currentlyPaused = true;
-            			}
-            			
-            			// whether starting a new pause or continuing an old, 
-            			// log the last sub-threshold values and bump the pause counter
-        				lastTime = nextLine[INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
-        				lastNo = nextLine[INPUT_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
-        				windowCount++;
-            		} else {
-                		// check to see if we've completed a pause window
-            			verifyPause(currentlyPaused, (windowCount >= pauseWindow), startTime, 
-            					startNo, lastTime, lastNo, windowCount);
-            			
-            			// measurement denotes active movement ... reset pause details
-            			currentlyPaused = false;
-            			windowCount = 0;
-            		}
-    			}
+        		double accelMag = 
+        				Double.parseDouble(nextLine[INTERM_FILE_COLUMN_ORDER.ACCEL_MAG.ordinal()]);
+        		evaluatePause(nextLine, accelMag, pauseThreshold);
     		}
     	}
     	
     	// it's possible that the last record of the data set is a pause
     	// (will not trigger automatically if there is no invalid record following)
 		verifyPause(currentlyPaused, (windowCount >= pauseWindow), startTime, 
-				startNo, lastTime, lastNo, windowCount);
+				startNo, endTime, endNo, windowCount);
 
     	// Finalize the output file and update toolkit state
         finalizePauseCSV();
         MCIAnalysis.pauseUtilized = true;
+    }
+    
+    /**
+     * 
+     * @param nextLine
+     * @param value
+     * @param threshold
+     */
+    private void evaluatePause(String[] nextLine, double value, double threshold) {
+		if (value < threshold) {
+			// we've found a pause instance
+			if (!currentlyPaused) {
+				// new pause instance ... log the starting details
+				startTime = nextLine[INTERM_FILE_COLUMN_ORDER.TIME.ordinal()];
+				startNo = nextLine[INTERM_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
+				currentlyPaused = true;
+			}
+			
+			// whether starting a new pause or continuing an old, 
+			// log the last sub-threshold values and bump the pause counter
+			endTime = nextLine[INTERM_FILE_COLUMN_ORDER.TIME.ordinal()];
+			endNo = nextLine[INTERM_FILE_COLUMN_ORDER.RECORD_NUM.ordinal()];
+			windowCount++;
+		} else {
+    		// check to see if we've completed a pause window
+			verifyPause(currentlyPaused, (windowCount >= pauseWindow), startTime, 
+					startNo, endTime, endNo, windowCount);
+			
+			// measurement denotes active movement ... reset pause details
+			currentlyPaused = false;
+			windowCount = 0;
+		}
     }
     
     /**
@@ -153,11 +148,11 @@ public class PauseDuration extends PauseBase implements Analysis {
 			
 			// determine the current duration and add to our running total
 			Double currentDuration = windowCount * Constants.SAMPLING_PERIOD;
-			totalPauseDuration += currentDuration;
+			totalPauseDurationAccel += currentDuration;
 			
 			// output pause details to file
         	addToPauseCSV(startTime, startNo, endTime, endNo, currentDuration);
-        	totalPauseCount++;
+        	totalPauseCountAccel++;
 		}
     }
     
