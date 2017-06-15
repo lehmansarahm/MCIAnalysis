@@ -82,7 +82,7 @@ public class PauseCount extends PauseBase implements Analysis {
     	checkForCalibratedThreshold(userID);
     	List<String[]> readerContents = reader.readAll();
     	
-    	// Iterate through reader contents ...
+    	// Iterate through reader contents to find "speed" dependent pauses
     	useAccel = false;
     	writer.writeNext(new String[] { "PAUSE METRIC", "SPEED" });
     	for (String[] nextLine : readerContents) {
@@ -96,6 +96,7 @@ public class PauseCount extends PauseBase implements Analysis {
         finalizePauseCSV();
     	resetProcessingProps();
     	
+    	// iterate through a second time to find "acceleration" dependent pauses
     	useAccel = true;
     	writer.writeNext(new String[] { "PAUSE METRIC", "ACCELERATION" });
     	for (String[] nextLine : readerContents) {

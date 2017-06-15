@@ -12,6 +12,7 @@ import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Analysis operation for MCI Analysis Toolkit.  Intended to identify pauses 
@@ -76,10 +77,26 @@ public class PauseDuration extends PauseBase implements Analysis {
     private void createPauseAnalysisCSV(String userID) throws IOException {
     	// update pause threshold if calibrations were used
     	checkForCalibratedThreshold(userID);
+    	List<String[]> readerContents = reader.readAll();
+
+    	// Iterate through reader contents to find "speed" dependent pauses
+    	useAccel = false;
+    	writer.writeNext(new String[] { "PAUSE METRIC", "SPEED" });
+    	for (String[] nextLine : readerContents) {
+    		if (!isHeaderLine(nextLine)) {
+				double speed = Double.parseDouble(nextLine[INTERM_FILE_COLUMN_ORDER.SPEED.ordinal()]);
+				evaluatePause(nextLine, speed, PAUSE_SPEED_THRESHOLD);
+    		}
+    	}
+
+    	// write preliminary results to output file
+        finalizePauseCSV();
+    	resetProcessingProps();
     	
-    	// Iterate through reader contents ...
-    	String[] nextLine;
-    	while ((nextLine = reader.readNext()) != null) {
+    	// iterate through a second time to find "acceleration" dependent pauses
+    	useAccel = true;
+    	writer.writeNext(new String[] { "PAUSE METRIC", "ACCELERATION" });
+    	for (String[] nextLine : readerContents) {
     		if (!isHeaderLine(nextLine)) {
         		double accelMag = 
         				Double.parseDouble(nextLine[INTERM_FILE_COLUMN_ORDER.ACCEL_MAG.ordinal()]);
@@ -148,11 +165,13 @@ public class PauseDuration extends PauseBase implements Analysis {
 			
 			// determine the current duration and add to our running total
 			Double currentDuration = windowCount * Constants.SAMPLING_PERIOD;
-			totalPauseDurationAccel += currentDuration;
+			totalPauseDurationAccel += (useAccel) ? currentDuration : 0;
+			totalPauseDurationSpeed += (!useAccel) ? currentDuration : 0;
 			
 			// output pause details to file
         	addToPauseCSV(startTime, startNo, endTime, endNo, currentDuration);
-        	totalPauseCountAccel++;
+			totalPauseCountAccel += (useAccel) ? 1 : 0;
+			totalPauseCountSpeed += (!useAccel) ? 1 : 0;
 		}
     }
     
