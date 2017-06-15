@@ -10,6 +10,7 @@ import edu.temple.tan.mcianalysis.analyses.Analysis;
 import edu.temple.tan.mcianalysis.config.AnalysisCommand;
 import edu.temple.tan.mcianalysis.config.ConfigCommand;
 import edu.temple.tan.mcianalysis.config.ConfigInterpreter;
+import edu.temple.tan.mcianalysis.intermediates.ActivityFilter;
 import edu.temple.tan.mcianalysis.intermediates.ActivitySplit;
 import edu.temple.tan.mcianalysis.intermediates.CalibrationProcessing;
 import edu.temple.tan.mcianalysis.preprocessing.AccelerationProcessing;
@@ -61,6 +62,7 @@ public class MCIAnalysis {
     	
     	// before anything else, clear out artifacts from last execution
     	ToolkitUtils.removeOldArtifacts();
+    	ToolkitUtils.initializeAppDirs();
     	
         List<ConfigCommand> commands = ConfigInterpreter.loadNewCommands();
         String filePath = new File("").getAbsolutePath();
@@ -69,6 +71,7 @@ public class MCIAnalysis {
         	String[] userIDList = command.getUsername().split(Constants.DELIMITER_PARAMETER);
             String[] rawFilenameList = command.getSourceFile().split(Constants.DELIMITER_PARAMETER);
             
+            // parse out the input files
             if (rawFilenameList.length == 1) {
             	List<String> inputFiles = new ArrayList<>();
             	String inputFolderPath = rawFilenameList[0];
@@ -100,28 +103,27 @@ public class MCIAnalysis {
             // only continue with the analysis if the number of users 
             // provided matches the number of data files
             if (userIDList.length == rawFilenameList.length) {
-            	for (int i = 0; i < userIDList.length; i++) {
+            	String rawTargetActivity = command.getTaskName();
+                accelerationProcessing = (command.getAccelProcess() == 1) ? "Linear" : "Raw";
+                
+                String calibrationStep = command.getCalibStep();
+                calibThresholdsUtilized = (!calibrationStep.equals(""));
+                
+                List<String> csvActivityList = new ArrayList<>();
+                for (int i = 0; i < userIDList.length; i++) {
                 	// Retrieve the initial command details (username, input file, 
                 	// target activity, accel. proc. mode)
             		String userID = userIDList[i];
             		String rawFilename = getFilename(userID, rawFilenameList);
                     String targetFilePath = filePath.concat(rawFilename);
-                	
-                    // CSVReader reader is one of two arguments to be passed to the
-                    // analysis methods, to be populated based on accel. processing selection
-                    int accelerationProcess = command.getAccelProcess();
-                    switch (accelerationProcess) {
-                        case 0:
-                            accelerationProcessing = "Raw";
-                            break;
-                        case 1:
-                            accelerationProcessing = "Linear";
-                            CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
-        	                targetFilePath = AccelerationProcessing.convertToLinearAcceleration(reader, rawFilename);
-        	                break;
-                        default:
-                            break;
-                    }
+
+                	// if using accel processing, convert all input files to linear
+                	if (accelerationProcessing.equals("Linear")) {
+                        // CSVReader reader is one of two arguments to be passed to the
+                        // analysis methods, to be populated based on accel. processing selection
+	                    CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
+		                targetFilePath = AccelerationProcessing.convertToLinearAcceleration(reader, rawFilename);
+                	}
 
                     CSVReader emaReader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
                     String emaFilePath = EMAProcessing.convertToMovingAverage(emaReader, rawFilename);
@@ -131,31 +133,39 @@ public class MCIAnalysis {
                     NormalizationProcessing.normalize(normReader, rawFilename);
                     normReader.close();
 
-                	String rawTargetActivity = command.getTaskName();
-                    
                     // Split out activity list based on user selection
-                    List<String> csvActivityList = new ArrayList<String>();
+                    List<String> userCSVActivityList = new ArrayList<>();
                     if (!rawTargetActivity.equalsIgnoreCase("All")) {
                         String[] targetActivities = rawTargetActivity.split(Constants.DELIMITER_PARAMETER);
                         for (String targetActivity : targetActivities) {
+                        	targetActivity = targetActivity.trim();
                             CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
-                            String intermFilePath = ActivitySplit.generateActivitySpecificCSV(reader, userID, targetActivity.trim());
-                            if (intermFilePath != null) csvActivityList.add(intermFilePath);
+                            String intermFilePath = ActivitySplit.generateActivitySpecificCSV(reader, userID, targetActivity);
+                            if (intermFilePath != null) userCSVActivityList.add(intermFilePath);
                         	reader.close();
                         }
                     } else {
                         CSVReader reader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
-                        csvActivityList = ActivitySplit.generateCSVForAllActivities(reader, userID);
+                        userCSVActivityList = ActivitySplit.generateCSVForAllActivities(reader, userID);
                         reader.close();
                     }
                     
                     // If necessary, calibrate the pause / sudden movement thresholds
-                    String calibrationStep = command.getCalibStep();
-                    calibThresholdsUtilized = (!calibrationStep.equals(""));
                     if (calibThresholdsUtilized) {
-                    	CalibrationProcessing.calibrateThresholdsForUser(userID, csvActivityList, calibrationStep);
+                    	CalibrationProcessing.calibrateThresholdsForUser(userID, userCSVActivityList, calibrationStep);
                     }
+                    
+                    // Now that user-specific processing is over, add the user activities to the main list
+                    csvActivityList.addAll(userCSVActivityList);
+                }
 
+                int taskCompletionThreshold = command.getTaskCompletionThreshold();
+                csvActivityList = ActivityFilter.filterByTaskCompletion(csvActivityList, taskCompletionThreshold, userIDList.length);
+                
+            	for (String targetFilePath : csvActivityList) {
+            		String filename = ToolkitUtils.getFileNameFromAbsolutePath(targetFilePath);
+            		String userID = ToolkitUtils.getUsernameFromFileName(filename);
+            		
                     // Iterate through analysis operations provided in config file
                     List<AnalysisCommand> analysisOps = command.getAnalysisOps();
                     for (AnalysisCommand analysisOp : analysisOps) {
@@ -166,22 +176,21 @@ public class MCIAnalysis {
                         Method analysisMethod = analysisClass.getMethod("beginAnalysis", 
                         		String.class, String.class, String.class, String.class);
 
-                        // Perform analysis for all activities indicated by config file
-                        for (String activity : csvActivityList) {
-                            try {
-                            	analysisMethod.invoke(classObject, activity, userID, 
-                        			analysisOp.getParam1(), analysisOp.getParam2());
-                            } catch(IllegalArgumentException e) {
-                                continue;
-                            }
+                        // Perform analysis against target file as indicated by config file
+                        try {
+                        	analysisMethod.invoke(classObject, targetFilePath, userID, 
+                    			analysisOp.getParam1(), analysisOp.getParam2());
+                        } catch(IllegalArgumentException e) {
+                            continue;
                         }
                     }
                     
-                    // Clear out the activity list for this command set, and progress to the next
                     LogManager.info(MCIAnalysis.class, "Finished processing input file: " 
                     		+ targetFilePath + " for user: " + userID + "\n");
-                    csvActivityList.clear();
             	}
+            	
+                // Clear out the activity list for this command set, and progress to the next
+                csvActivityList.clear();
             }
         }
 

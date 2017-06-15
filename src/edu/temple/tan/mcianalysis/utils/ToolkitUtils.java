@@ -22,7 +22,7 @@ public class ToolkitUtils {
 	 * @return
 	 */
 	public static String getFilenameCompatibleActivityName(String activityName) {
-		return activityName.replace(" ", Constants.DELIMITER_SPACE);
+		return activityName.trim().replace(" ", Constants.DELIMITER_SPACE);
 	}
 	
     /**
@@ -41,6 +41,18 @@ public class ToolkitUtils {
         double magnitude = Math.sqrt(magX + magY + magZ);
         return magnitude;
     }
+    
+    /**
+     * 
+     */
+    public static void initializeAppDirs() {
+        String absolutePath = new File("").getAbsolutePath();
+        String debugPath = absolutePath.concat(Constants.FOLDER_NAME_DEBUG);
+        new File(debugPath).mkdirs();
+        
+        String finalPath = absolutePath.concat(Constants.FOLDER_NAME_FINAL);
+        new File(finalPath).mkdirs();
+    }
 
     /**
      * Ensures proper output directories are set up, and that the CSV Writer has 
@@ -56,13 +68,9 @@ public class ToolkitUtils {
 	  String analysisName) {
         String[] pathComponents = localFilePath.split(Constants.DELIMITER_FILEPATH);
         String finalFilename = pathComponents[pathComponents.length - 1];
+
         String absolutePath = new File("").getAbsolutePath();
-        
-        String debugPath = absolutePath.concat(Constants.FOLDER_NAME_DEBUG);
-        new File(debugPath).mkdirs();
-        
         absolutePath = absolutePath.concat(Constants.FOLDER_NAME_FINAL);
-        new File(absolutePath).mkdirs();
         
         absolutePath = absolutePath.concat(Constants.DELIMITER_FILEPATH + analysisName);
         new File(absolutePath).mkdirs();
@@ -89,6 +97,7 @@ public class ToolkitUtils {
         removeOldDirectory(absolutePath, Constants.FOLDER_NAME_PREPROCESSING_NORM);
 
         removeOldDirectory(absolutePath, Constants.FOLDER_NAME_INTERM_ACT_SPLIT);
+        removeOldDirectory(absolutePath, Constants.FOLDER_NAME_INTERM_ACT_FILTER);
         removeOldDirectory(absolutePath, Constants.FOLDER_NAME_INTERM_CALIBRATIONS);
     }
     
@@ -106,12 +115,33 @@ public class ToolkitUtils {
 		}
     }
     
+    /**
+     * 
+     * @param filepath
+     * @return
+     */
+    public static String getFileNameFromAbsolutePath(String filepath) {
+    	String[] pathComponents = filepath.split(Constants.DELIMITER_FILEPATH);
+        return pathComponents[pathComponents.length - 1];
+    }
+    
+    /**
+     * 
+     * @param filename
+     * @return
+     */
+    public static String getUsernameFromFileName(String filename) {
+        String[] nameComponents = filename.split(Constants.DELIMITER_FILENAME);
+        String username = nameComponents[0];
+    	return username;
+    }
+    
 	/**
 	 * 
 	 * @param filename
 	 * @return
 	 */
-    public static String getActivityNameFromOutputFile(String filename) {
+    public static String getActivityNameFromFileName(String filename) {
         String[] nameComponents = filename.split(Constants.DELIMITER_FILENAME);
         String activityName = nameComponents[nameComponents.length - 2];
     	return activityName;

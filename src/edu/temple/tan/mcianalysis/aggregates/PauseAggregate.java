@@ -67,7 +67,7 @@ public class PauseAggregate {
                 //loop through the inner directory
                 for (int j = 0; j < innerFiles.length; j++) {
                     if (!innerFiles[j].getName().equals(aggregateFileName)) {
-                        String taskName = ToolkitUtils.getActivityNameFromOutputFile(innerFiles[j].getName());
+                        String taskName = ToolkitUtils.getActivityNameFromFileName(innerFiles[j].getName());
                         
                         String filePath = innerFiles[j].getAbsolutePath();
                         CSVReader reader = new CSVReader(new FileReader(filePath), ',', '"', 0);

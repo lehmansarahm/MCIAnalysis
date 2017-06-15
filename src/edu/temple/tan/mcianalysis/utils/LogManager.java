@@ -8,9 +8,16 @@ import java.util.List;
 
 public class LogManager {
 
+	private static List<String> debugMessages = new ArrayList<>();
 	private static List<String> errorMessages = new ArrayList<>();
 	private static List<String> infoMessages = new ArrayList<>();
 	private static List<String> userMessages = new ArrayList<>();
+	
+	/**
+	 * 
+	 * @param message
+	 */
+	public static void debug(String message) { debugMessages.add(message + "\n"); }
 	
 	/**
 	 * 
@@ -33,7 +40,8 @@ public class LogManager {
 	 * @param ex
 	 */
 	public static void error(Class<?> source, Exception ex) { 
-		errorMessages.add(source.getName() + "\n" + ex.getMessage() + "\n" + ex.getStackTrace()); 
+		errorMessages.add(source.getName() + "\n" + ex.getMessage() + "\n\n"); 
+		ex.printStackTrace();
 	}
 	
 	/**
@@ -70,6 +78,7 @@ public class LogManager {
 	 * 
 	 */
 	public static void writeAll() {
+		writeLog(Constants.LOG_FILE_DEBUG, debugMessages);
 		writeLog(Constants.LOG_FILE_ERRORS, errorMessages);
 		writeLog(Constants.LOG_FILE_INFO, infoMessages);
 		writeLog(Constants.LOG_FILE_USER_RESULTS, userMessages);

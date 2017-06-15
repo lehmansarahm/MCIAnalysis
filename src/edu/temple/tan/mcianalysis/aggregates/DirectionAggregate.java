@@ -56,7 +56,7 @@ public class DirectionAggregate {
                         reader.close();
 
                         int taskIndex = SUDDEN_MOVEMENT_AGGREGATE_COLUMN_ORDER.TASK.ordinal();
-                        String taskName = ToolkitUtils.getActivityNameFromOutputFile(innerFiles[j].getName());
+                        String taskName = ToolkitUtils.getActivityNameFromFileName(innerFiles[j].getName());
                         totalLine[taskIndex] =  taskName;
                         
                         int m = 0;

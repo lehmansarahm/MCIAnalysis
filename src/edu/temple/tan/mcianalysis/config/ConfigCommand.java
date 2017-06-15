@@ -15,9 +15,26 @@ public class ConfigCommand {
 	private String username;
 	private String sourceFile;
 	private String taskName;
+	private int taskCompletionThreshold;
 	private int accelProcess;
 	private String calibStep;
 	private List<AnalysisCommand> analysisOps;
+	
+	/*
+	  ----------------------------------------------------------------
+	 	EXPECTED FORMAT
+	  ----------------------------------------------------------------
+	    {
+		Username = [single val or comma-delim list]
+		File = [single file path or folder path]
+		Task to Analyze = ["all", single val, or comma-delim list]
+		Use Task Completion Threshold = ["none" / "false" or int val]
+		Use Linear Processing = [boolean]
+		Use Calibrated Step = ["none" / "false" or single val]
+		Analysis = [OpName]:[first param]:[second param]
+		}
+	  ----------------------------------------------------------------
+	 */
 	
 	/**
 	 * 
@@ -38,6 +55,10 @@ public class ConfigCommand {
 				this.sourceFile = parsedInput;
 			} else if (i == CONFIG_FILE_COLUMN_ORDER.TASK.ordinal()) {
 				this.taskName = parsedInput;
+			} else if (i == CONFIG_FILE_COLUMN_ORDER.TASK_COMPLETION_THRESHOLD.ordinal()) {
+				this.taskCompletionThreshold = 
+						(parsedInput.equalsIgnoreCase("none") || parsedInput.equalsIgnoreCase("false")) 
+							? 0 : Integer.parseInt(parsedInput);
 			} else if (i == CONFIG_FILE_COLUMN_ORDER.ACCEL_PROCESSING.ordinal()) {
 				this.accelProcess = 
 						(parsedInput.equalsIgnoreCase("yes") || parsedInput.equalsIgnoreCase("true")) ? 1 : 0;
@@ -75,6 +96,14 @@ public class ConfigCommand {
 	 */
 	public String getTaskName() {
 		return this.taskName;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public int getTaskCompletionThreshold() {
+		return this.taskCompletionThreshold;
 	}
 	
 	/**

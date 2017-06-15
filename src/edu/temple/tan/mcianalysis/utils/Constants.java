@@ -98,11 +98,13 @@ public class Constants {
 
     public static final String FOLDER_NAME_DEBUG = "/Debug";
     public static final String FOLDER_NAME_FINAL = "/Final";
-    public static final String FOLDER_NAME_INTERM_ACT_SPLIT = "/Phase2a-Intermediate-ActivitySplit";
-    public static final String FOLDER_NAME_INTERM_CALIBRATIONS = "/Phase2b-Intermediate-Calibration";
     public static final String FOLDER_NAME_PREPROCESSING_LINEAR = "/Phase1a-Preprocessing-Linear";
     public static final String FOLDER_NAME_PREPROCESSING_LPFILTER = "/Phase1b-Preprocessing-LowPassFilter";
     public static final String FOLDER_NAME_PREPROCESSING_NORM = "/Phase1c-Preprocessing-Normalization";
+    public static final String FOLDER_NAME_INTERM_ACT_SPLIT = "/Phase2a-Intermediate-ActivitySplit";
+    public static final String FOLDER_NAME_INTERM_ACT_FILTER = "/Phase2b-Intermediate-ActivityFilter";
+    public static final String FOLDER_NAME_INTERM_CALIBRATIONS = "/Phase2c-Intermediate-Calibration";
+    
     public static final String FOLDER_NAME_ACCELERATION = ("/" + ANALYSIS_ACCELERATION);
     public static final String FOLDER_NAME_DIRECTION = ("/" + ANALYSIS_DIRECTION);
     public static final String FOLDER_NAME_PAUSE = ("/" + ANALYSIS_PAUSE);
@@ -150,6 +152,7 @@ public class Constants {
     // -------------------------------------------------------------------
     // -------------------------------------------------------------------
     
+    public static final String LOG_FILE_DEBUG = "Debug.txt";
     public static final String LOG_FILE_ERRORS = "Errors.txt";
     public static final String LOG_FILE_INFO = "Info.txt";
     public static final String LOG_FILE_USER_RESULTS = "UserResults.txt";
@@ -164,6 +167,7 @@ public class Constants {
     	USERNAME,
     	INPUT_FILE,
     	TASK,
+    	TASK_COMPLETION_THRESHOLD,
     	ACCEL_PROCESSING,
     	CALIBRATED_THRESHOLDS,
     	ANALYSES

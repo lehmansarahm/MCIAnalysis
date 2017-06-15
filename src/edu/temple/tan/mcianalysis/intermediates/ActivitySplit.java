@@ -192,10 +192,8 @@ public class ActivitySplit {
         		+ Constants.DELIMITER_FILENAME 
         		+ ToolkitUtils.getFilenameCompatibleActivityName(requestedActivityName)
         		+ Constants.DELIMITER_FILENAME + timeStamp + ".csv";
+        
         String intermFilePath = absolutePath.concat(intermFileName);
-
-		//Logger.getLogger(ActivitySplit.class.getName()).log(Level.INFO, 
-        //		"New interm file path generated for activity: " + requestedActivityName, "");
         return intermFilePath;
     }
     
