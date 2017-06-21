@@ -13,7 +13,7 @@ import com.opencsv.CSVWriter;
 import edu.temple.tan.mcianalysis.utils.Constants;
 import edu.temple.tan.mcianalysis.utils.LogManager;
 import edu.temple.tan.mcianalysis.utils.Constants.CALIB_FILE_COLUMN_ORDER;
-import edu.temple.tan.mcianalysis.utils.Constants.INPUT_FILE_COLUMN_ORDER;
+import edu.temple.tan.mcianalysis.utils.Constants.INTERM_FILE_COLUMN_ORDER;
 import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 public class CalibrationProcessing {
@@ -28,8 +28,13 @@ public class CalibrationProcessing {
 		String inputFilePath = "";
 		String inputFilePrefix = userName + Constants.DELIMITER_FILENAME 
 				+ ToolkitUtils.getFilenameCompatibleActivityName(calibrationStep);
+		String linearInputFilePrefix = userName + Constants.DELIMITER_FILENAME + "Linear" + Constants.DELIMITER_FILENAME
+				+ ToolkitUtils.getFilenameCompatibleActivityName(calibrationStep);
+		
 		for (String inputFile : inputFileList) {
-			if (inputFile.contains(inputFilePrefix)) inputFilePath = inputFile;
+	    	//LogManager.info(CalibrationProcessing.class, "Evaluating input file: " + inputFile);
+			if (inputFile.contains(inputFilePrefix) || inputFile.contains(linearInputFilePrefix)) 
+				inputFilePath = inputFile;
 		}
 
 		// we are assuming that an intermediate file exists for the subtask data associated 
@@ -39,9 +44,6 @@ public class CalibrationProcessing {
 	    			"No valid input file path.  Returning from calibration processing.");
 			return;
 		}
-		
-		//Logger.getLogger(CalibrationProcessing.class.getName()).log(Level.INFO, 
-        //		"Preparing to calculate calibration data from input file: " + inputFilePath, "");
 		
 		// else, a matching input file has been identified ... 
 		// parse the data inside to determine customized user thresholds
@@ -63,15 +65,15 @@ public class CalibrationProcessing {
 	    	Date startTime = null, endTime = null;
 			for (String[] nextLine : fileContents) {
 				if (!ToolkitUtils.isHeaderLine(nextLine)) {
-					String currentTime = nextLine[INPUT_FILE_COLUMN_ORDER.TIME.ordinal()];
+					String currentTime = nextLine[INTERM_FILE_COLUMN_ORDER.TIME.ordinal()];
 					if (startTime == null) startTime = ToolkitUtils.getDateTime(currentTime);
 					endTime = ToolkitUtils.getDateTime(currentTime);
 					
-					String currentSubtaskStep = nextLine[INPUT_FILE_COLUMN_ORDER.ACTIVITY.ordinal()].trim();
+					String currentSubtaskStep = nextLine[INTERM_FILE_COLUMN_ORDER.ACTIVITY.ordinal()].trim();
 					if (calibrationStep.equals(currentSubtaskStep)) {
-						double currAccelX = Double.parseDouble(nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_X.ordinal()]);
-						double currAccelY = Double.parseDouble(nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()]);
-						double currAccelZ = Double.parseDouble(nextLine[INPUT_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()]);
+						double currAccelX = Double.parseDouble(nextLine[INTERM_FILE_COLUMN_ORDER.ACCEL_X.ordinal()]);
+						double currAccelY = Double.parseDouble(nextLine[INTERM_FILE_COLUMN_ORDER.ACCEL_Y.ordinal()]);
+						double currAccelZ = Double.parseDouble(nextLine[INTERM_FILE_COLUMN_ORDER.ACCEL_Z.ordinal()]);
 						calibTotalAccelMag += ToolkitUtils.calculateMagnitude(currAccelX, currAccelY, currAccelZ);
 						calibRowCount++;
 					}
@@ -134,7 +136,7 @@ public class CalibrationProcessing {
 						reader.close();
 						return (Double.parseDouble(fileContents.get(1)[valueIndex]));
 					} catch (IOException ex) {
-						// reader connection could not be maintained
+				    	LogManager.error(CalibrationProcessing.class, ex);
 					}
 				}
 			}

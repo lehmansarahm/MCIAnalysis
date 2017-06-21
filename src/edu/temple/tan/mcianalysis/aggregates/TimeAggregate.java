@@ -4,6 +4,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import edu.temple.tan.mcianalysis.utils.Constants;
+import edu.temple.tan.mcianalysis.utils.ToolkitUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -42,7 +43,7 @@ public class TimeAggregate {
                 File[] innerFiles = listOfFiles[i].listFiles();
                 String total_write_line[] = new String[2];
                 String writer_path = listOfFiles[i].getAbsolutePath();
-                writer_path = writer_path.concat("/" + Constants.AGGREGATE_FILE_TASK_TIME);
+                writer_path = writer_path.concat(Constants.DELIMITER_FILEPATH + Constants.AGGREGATE_FILE_TASK_TIME);
                 CSVWriter writer = new CSVWriter(new FileWriter(writer_path));
 
                 total_write_line[0] = "Task:";
@@ -52,12 +53,9 @@ public class TimeAggregate {
 
                 //loop through the inner directory
                 for (int j = 0; j < innerFiles.length; j++) {
-                    if (!innerFiles[j].getName().equals(Constants.AGGREGATE_FILE_TASK_TIME)) {
-                        String task_name = "";
-                        String[] name_components = innerFiles[j].getName().split("_");
-                        if (name_components.length >= 3) {
-                            task_name = name_components[2];
-                        }
+                	String fileName = innerFiles[j].getName();
+                    if (!fileName.equals(Constants.AGGREGATE_FILE_TASK_TIME)) {
+                        String task_name = ToolkitUtils.getActivityNameFromFileName(fileName);
                         
                         List<String[]> read_all = new ArrayList<String[]>();
                         CSVReader reader = new CSVReader(new FileReader(innerFiles[j].getAbsolutePath()), ',', '"', 0);
