@@ -70,6 +70,12 @@ public class MCIAnalysis {
         for (ConfigCommand command : commands) {
         	String[] userIDList = command.getUsername().split(Constants.DELIMITER_PARAMETER);
             String[] rawFilenameList = command.getSourceFile().split(Constants.DELIMITER_PARAMETER);
+
+            // ----------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------
+            //				INITIAL PROCESSING - RETRIEVE LIST OF RAW INPUT FILES
+            // ----------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------
             
             // parse out the input files
             if (rawFilenameList.length == 1) {
@@ -117,6 +123,12 @@ public class MCIAnalysis {
             		String rawFilename = getFilename(userID, rawFilenameList);
                     String targetFilePath = filePath.concat(rawFilename);
 
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
+                    //		PREPROCESSING, PART ONE - LINEAR CONVERSION
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
+
                 	// if using accel processing, convert all input files to linear
                 	if (accelerationProcessing.equals("Linear")) {
                         // CSVReader reader is one of two arguments to be passed to the
@@ -125,13 +137,31 @@ public class MCIAnalysis {
 		                targetFilePath = AccelerationProcessing.convertToLinearAcceleration(reader, rawFilename);
                 	}
 
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
+                    //		PREPROCESSING, PART TWO - LOW PASS FILTER
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
+
                     CSVReader emaReader = new CSVReader(new FileReader(targetFilePath), ',', '"', 0);
                     String emaFilePath = EMAProcessing.convertToMovingAverage(emaReader, rawFilename);
                     emaReader.close();
 
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
+                    //		PREPROCESSING, PART THREE - NORMALIZATION
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
+
                     CSVReader normReader = new CSVReader(new FileReader(emaFilePath), ',', '"', 0);
                     NormalizationProcessing.normalize(normReader, rawFilename);
                     normReader.close();
+
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
+                    //		INTERMEDIATE PROCESSING, PART ONE - ACTIVITY SPLIT
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
 
                     // Split out activity list based on user selection
                     List<String> userCSVActivityList = new ArrayList<>();
@@ -149,6 +179,13 @@ public class MCIAnalysis {
                         userCSVActivityList = ActivitySplit.generateCSVForAllActivities(reader, userID);
                         reader.close();
                     }
+
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
+                    //		INTERMEDIATE PROCESSING, PART THREE - THRESHOLD CALIBRATION
+                    //							(out of order)
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
                     
                     // If necessary, calibrate the pause / sudden movement thresholds
                     if (calibThresholdsUtilized) {
@@ -159,6 +196,13 @@ public class MCIAnalysis {
                     csvActivityList.addAll(userCSVActivityList);
                 }
 
+                // --------------------------------------------------------------------------------
+                // --------------------------------------------------------------------------------
+                //	INTERMEDIATE PROCESSING, PART TWO - FILTER ACTIVITY BY COMPLETION PERCENTAGE
+                //								(out of order)
+                // --------------------------------------------------------------------------------
+                // --------------------------------------------------------------------------------
+
                 int taskCompletionThreshold = command.getTaskCompletionThreshold();
                 csvActivityList = ActivityFilter.filterByTaskCompletion(csvActivityList, taskCompletionThreshold, userIDList.length);
                 
@@ -166,6 +210,12 @@ public class MCIAnalysis {
             	for (String targetFilePath : csvActivityList) {
             		String filename = ToolkitUtils.getFileNameFromAbsolutePath(targetFilePath);
             		String userID = ToolkitUtils.getUsernameFromFileName(filename);
+
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
+                    //					FINAL PROCESSING - ANALYIS OPERATIONS
+                    // ----------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------
             		
                     // Iterate through analysis operations provided in config file
                     List<AnalysisCommand> analysisOps = command.getAnalysisOps();
@@ -194,6 +244,12 @@ public class MCIAnalysis {
                 csvActivityList.clear();
             }
         }
+
+        // ----------------------------------------------------------------------------------------
+        // ----------------------------------------------------------------------------------------
+        //					POST PROCESSING - DATA AGGREGATION AND LOG FILE DUMP
+        // ----------------------------------------------------------------------------------------
+        // ----------------------------------------------------------------------------------------
 
         // Write out final results
 		ConfigInterpreter.writeConfigSettingsToOutputFiles();

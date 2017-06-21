@@ -142,7 +142,7 @@ public class PauseBase {
      * @param userID
      */
     protected void checkForCalibratedThreshold(String userID) {
-    	boolean usingCalibratedThresholds = false; // MCIAnalysis.calibThresholdsUtilized;
+    	boolean usingCalibratedThresholds = MCIAnalysis.calibThresholdsUtilized; // false;
 		if (usingCalibratedThresholds) {
 			// only update the pause threshold if calibrations have been selected, 
 			// and a valid calibration threshold exists for the current user
